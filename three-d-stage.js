@@ -222,6 +222,9 @@
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.05;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
       this._renderer = renderer;
       this.shadowRoot.insertBefore(renderer.domElement, this._err);
 
@@ -237,24 +240,48 @@
       controls.dampingFactor = 0.08;
       this._controls = controls;
 
-      // Neutral studio: soft sky/ground wash, a shadow-casting key light,
-      // and a dim fill from behind so silhouettes never go black.
-      scene.add(new THREE.HemisphereLight(0xffffff, 0xd8d2c4, 0.75));
-      const key = new THREE.DirectionalLight(0xffffff, 2.6);
-      key.position.set(1.5, 9, 2.5);
+      // Studio lighting: image-based ambient from a small hand-built room
+      // (no addon import) for real material response, warm key, cool rim.
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const envScene = new THREE.Scene();
+      const white = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const roomGeo = new THREE.BoxGeometry(10, 10, 10);
+      const room = new THREE.Mesh(roomGeo, new THREE.MeshBasicMaterial({ color: 0x444444, side: THREE.BackSide }));
+      envScene.add(room);
+      const panel = (w, h, x, y, z, ry) => {
+        const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), white);
+        m.position.set(x, y, z); m.rotation.y = ry;
+        envScene.add(m);
+      };
+      panel(4, 3, 0, 4.9, 0, 0); envScene.children.at(-1).rotation.set(Math.PI / 2, 0, 0); // ceiling softbox
+      panel(3, 2, -4.9, 2, 0, Math.PI / 2);  // left panel
+      panel(3, 2, 4.9, 1, -1, -Math.PI / 2); // right panel
+      scene.environment = pmrem.fromScene(envScene, 0.04).texture;
+      scene.environmentIntensity = 0.55;
+      envScene.traverse((o) => o.geometry && o.geometry.dispose());
+      scene.add(new THREE.HemisphereLight(0xffffff, 0xd8d2c4, 0.35));
+      const key = new THREE.DirectionalLight(0xfff1dd, 2.4);
+      key.position.set(2, 6, 3);
       key.castShadow = true;
       key.shadow.mapSize.set(2048, 2048);
       key.shadow.bias = -0.0002;
-      key.shadow.radius = 4;
+      key.shadow.normalBias = 0.01;
+      key.shadow.radius = 6;
+      key.shadow.camera.near = 0.1;
+      key.shadow.camera.far = 30;
       this._key = key;
       scene.add(key);
-      const fill = new THREE.DirectionalLight(0xfff4e6, 0.5);
+      const fill = new THREE.DirectionalLight(0xe8f0ff, 0.4);
       fill.position.set(-5, 3, -4);
       scene.add(fill);
+      // Cool rim from behind-left to lift edges off the background
+      const rim = new THREE.DirectionalLight(0xdce8ff, 0.7);
+      rim.position.set(-3, 4, -6);
+      scene.add(rim);
 
       const ground = new THREE.Mesh(
         new THREE.PlaneGeometry(200, 200),
-        new THREE.ShadowMaterial({ opacity: 0.1 })
+        new THREE.ShadowMaterial({ opacity: 0.16 })
       );
       ground.rotation.x = -Math.PI / 2;
       ground.receiveShadow = true;

@@ -72,11 +72,11 @@ const cy = (PANEL / 2) * Math.cos(tilt);             // panel center height
 const cz = HALF_BASE - (PANEL / 2) * Math.sin(tilt); // panel center depth
 
 const loader = new THREE.TextureLoader();
-const paper = new THREE.MeshStandardMaterial({ color: 0xf5f0dc, roughness: 0.9 });
+const paper = new THREE.MeshPhysicalMaterial({ color: 0xf5f0dc, roughness: 0.92, sheen: 0.4, sheenRoughness: 0.9, sheenColor: 0xffffff });
 paper.name = 'paper';
-const printFront = new THREE.MeshStandardMaterial({ roughness: 0.85 });
+const printFront = new THREE.MeshPhysicalMaterial({ roughness: 0.55, clearcoat: 0.25, clearcoatRoughness: 0.6 });
 printFront.name = 'print-front';
-const printBack = new THREE.MeshStandardMaterial({ roughness: 0.85 });
+const printBack = new THREE.MeshPhysicalMaterial({ roughness: 0.55, clearcoat: 0.25, clearcoatRoughness: 0.6 });
 printBack.name = 'print-back';
 
 async function applyDesign(url) {
@@ -109,7 +109,7 @@ const model = new THREE.Group();
 model.name = 'a4-table-tent-on-table';
 
 // Table: a wooden top slab with four legs
-const wood = new THREE.MeshStandardMaterial({ color: 0x9c7a52, roughness: 0.65 });
+const wood = new THREE.MeshPhysicalMaterial({ color: 0x9c7a52, roughness: 0.45, clearcoat: 0.5, clearcoatRoughness: 0.35 });
 wood.name = 'table-wood';
 const TOP_W = 0.5, TOP_D = 0.36, TOP_T = 0.03, LEG_H = 0.14, LEG_R = 0.018;
 const table = new THREE.Group();
