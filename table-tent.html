@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>A4 Table Tent — 3D</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.184.0/build/three.module.js",
+    "three/addons/controls/OrbitControls.js": "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js",
+    "three/addons/exporters/OBJExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/OBJExporter.js",
+    "three/addons/exporters/GLTFExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js"
+  },
+  "integrity": {
+    "https://unpkg.com/three@0.184.0/build/three.module.js": "sha384-8FCZ1eVO6it4+pbec2aDtnTrwjWXZLJRC+MAGCIPDgsYnUrl/E0A2YlF8ioMKI/J",
+    "https://unpkg.com/three@0.184.0/build/three.core.js": "sha384-dw2ooPewaEIrAgl6oFDBmmBWCE9oW9LxRGcfwZ0hLvEprzo202wXl7vCYHRlSnOT",
+    "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js": "sha384-4rziNxOBZKQ69i+w+f89KJ55TCYquwchVbByQwmaOeIOXdOU2PLDn3kOfXHwIJC9",
+    "https://unpkg.com/three@0.184.0/examples/jsm/exporters/OBJExporter.js": "sha384-nbwtoZENJD3Vq+ACK0CuGQdPMuDWHkamC2KJD70EV5nfg6jQjfppKOea07YJN+N3",
+    "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js": "sha384-VofkvpG6HERhFCYbsUOHeNXBCqID2nfqkQqnVzE1jc/oPcz+qJ13ADdXH08hE+cQ"
+  }
+}
+</script>
+<meta name="ext-resource-dependency" content="uploads/GRUNGEF-LORRAINE.png" data-resource-id="design" />
+<style>
+html,body{margin:0;height:100%}
+three-d-stage:not(:defined){visibility:hidden}
+#drop{position:fixed;top:16px;left:16px;z-index:10;display:flex;align-items:center;gap:10px;
+  padding:12px 16px;border:1.5px dashed rgba(20,20,19,0.35);border-radius:10px;
+  background:rgba(255,255,255,0.9);color:#1a1915;font:13px/1.4 system-ui,sans-serif;
+  cursor:pointer;max-width:260px;transition:background .15s,border-color .15s}
+#drop:hover{background:#fff}
+#drop.over{background:#fdf9e8;border-color:#8a7b2f}
+#drop small{display:block;color:#7a766b}
+#file{display:none}
+#table-toggle{position:fixed;top:112px;left:16px;z-index:10;display:flex;align-items:center;gap:8px;
+  padding:9px 12px;border:1px solid rgba(20,20,19,0.18);border-radius:8px;
+  background:rgba(255,255,255,0.92);color:#1a1915;font:12.5px/1 system-ui,sans-serif;
+  cursor:pointer;user-select:none}
+#table-toggle:hover{background:#fff}
+#table-toggle input{margin:0;accent-color:#8a6f4d}
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail" data-bg-color="#f0eee6">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="#f0eee6"/><path d="M36 84 L60 40 L84 84 Z" fill="#8a6f4d"/><rect x="30" y="84" width="60" height="4" rx="2" fill="#c9c2b2"/></svg>
+</template>
+<three-d-stage name="a4-table-tent" autorotate></three-d-stage>
+<label id="drop" for="file">
+  <span style="font-size:20px">&#8853;</span>
+  <span><strong>Drop your A4 design here</strong> or click to browse<br>
+  <small>Landscape A4 &middot; bottom half = front, top half (upside-down) = back</small></span>
+</label>
+<input id="file" type="file" accept="image/*">
+<label id="table-toggle"><input id="show-table" type="checkbox" checked> Show table</label>
+<script src="./three-d-stage.js"></script>
+<script type="module">
+// ============================================================
+// REPLACE THE DESIGN HERE: path to a landscape A4 artwork
+// (297x210, e.g. 3508x2481 px). Bottom half of the sheet = front
+// face; top half (printed upside-down) = back face.
+const DESIGN_URL = (window.__resources && window.__resources['design']) || 'uploads/GRUNGEF-LORRAINE.png';
+// ============================================================
+
+const stage = document.querySelector('three-d-stage');
+const { THREE } = await stage.ready;
+
+// A4 landscape folded along the long side: tent is 297mm wide,
+// each face 210/2 = 105mm. Base opening 90mm -> stands nicely.
+const W = 0.297, PANEL = 0.105, HALF_BASE = 0.045, T = 0.0006;
+const tilt = Math.asin(HALF_BASE / PANEL);           // lean from vertical
+const cy = (PANEL / 2) * Math.cos(tilt);             // panel center height
+const cz = HALF_BASE - (PANEL / 2) * Math.sin(tilt); // panel center depth
+
+const loader = new THREE.TextureLoader();
+const paper = new THREE.MeshStandardMaterial({ color: 0xf5f0dc, roughness: 0.9 });
+paper.name = 'paper';
+const printFront = new THREE.MeshStandardMaterial({ roughness: 0.85 });
+printFront.name = 'print-front';
+const printBack = new THREE.MeshStandardMaterial({ roughness: 0.85 });
+printBack.name = 'print-back';
+
+async function applyDesign(url) {
+  const src = await loader.loadAsync(url);
+  src.colorSpace = THREE.SRGBColorSpace;
+  src.anisotropy = 8;
+  // bottom half of the sheet -> front face
+  const texFront = src.clone();
+  texFront.repeat.set(1, 0.5); texFront.offset.set(0, 0);
+  // top half (printed upside-down) -> back face, rotated 180°
+  const texBack = src.clone();
+  texBack.repeat.set(-1, -0.5); texBack.offset.set(1, 1);
+  if (printFront.map) printFront.map.dispose();
+  if (printBack.map) printBack.map.dispose();
+  printFront.map = texFront; printFront.needsUpdate = true;
+  printBack.map = texBack; printBack.needsUpdate = true;
+}
+await applyDesign(DESIGN_URL);
+
+function panel(printMat, name) {
+  const geo = new THREE.BoxGeometry(W, PANEL, T);
+  // box material order: +x,-x,+y,-y,+z,-z — print on outward +z face
+  const mesh = new THREE.Mesh(geo, [paper, paper, paper, paper, printMat, paper]);
+  mesh.name = name;
+  mesh.castShadow = true;
+  return mesh;
+}
+
+const model = new THREE.Group();
+model.name = 'a4-table-tent-on-table';
+
+// Table: a wooden top slab with four legs
+const wood = new THREE.MeshStandardMaterial({ color: 0x9c7a52, roughness: 0.65 });
+wood.name = 'table-wood';
+const TOP_W = 0.5, TOP_D = 0.36, TOP_T = 0.03, LEG_H = 0.14, LEG_R = 0.018;
+const table = new THREE.Group();
+table.name = 'table';
+const top = new THREE.Mesh(new THREE.BoxGeometry(TOP_W, TOP_T, TOP_D), wood);
+top.name = 'table-top';
+top.position.y = -TOP_T / 2;
+table.add(top);
+const inX = TOP_W / 2 - 0.07, inZ = TOP_D / 2 - 0.07;
+[[-inX, -inZ], [inX, -inZ], [-inX, inZ], [inX, inZ]].forEach(([x, z], i) => {
+  const leg = new THREE.Mesh(new THREE.CylinderGeometry(LEG_R, LEG_R * 0.8, LEG_H, 24), wood);
+  leg.name = 'table-leg-' + (i + 1);
+  leg.position.set(x, -TOP_T - LEG_H / 2, z);
+  table.add(leg);
+});
+model.add(table);
+
+const tent = new THREE.Group();
+tent.name = 'a4-table-tent';
+model.add(tent);
+
+const front = panel(printFront, 'front-panel');
+front.rotation.x = -tilt;
+front.position.set(0, cy, cz);
+tent.add(front);
+
+const back = panel(printBack, 'back-panel');
+back.rotation.set(tilt, Math.PI, 0);
+back.position.set(0, cy, -cz);
+tent.add(back);
+
+stage.setObject(model);
+// Close-up default view on the tent's front face, slightly above and to the left
+stage._camera.position.set(-0.14, 0.16, 0.34);
+stage._controls.target.set(0, 0.045, 0);
+stage._controls.update();
+
+// Table toggle — detaches the table from the model (exports follow the
+// toggle) and rests the ground shadow plane under whatever remains.
+const showTable = document.getElementById('show-table');
+const TABLE_KEY = 'tabletent-show-table';
+function setTableVisible(on) {
+  if (on && table.parent !== model) model.add(table);
+  if (!on && table.parent === model) model.remove(table);
+  stage._ground.position.y = new THREE.Box3().setFromObject(model).min.y;
+  showTable.checked = on;
+  try { localStorage.setItem(TABLE_KEY, on ? '1' : '0'); } catch (e) { /* storage unavailable */ }
+}
+showTable.addEventListener('change', () => setTableVisible(showTable.checked));
+// ?table=0 / ?table=1 in the URL wins; otherwise the last choice is remembered.
+const tableParam = new URLSearchParams(location.search).get('table');
+let savedTable = null;
+try { savedTable = localStorage.getItem(TABLE_KEY); } catch (e) { /* storage unavailable */ }
+if (tableParam === '0' || (tableParam !== '1' && savedTable === '0')) setTableVisible(false);
+
+// Drag & drop / file-picker to swap the design (persists across reloads)
+const drop = document.getElementById('drop');
+const file = document.getElementById('file');
+const LS_KEY = 'tabletent-design';
+function loadFile(f) {
+  if (!f || !f.type.startsWith('image/')) return;
+  const r = new FileReader();
+  r.onload = () => {
+    applyDesign(r.result);
+    try { localStorage.setItem(LS_KEY, r.result); } catch (e) { /* too big to persist */ }
+  };
+  r.readAsDataURL(f);
+}
+file.addEventListener('change', () => loadFile(file.files[0]));
+['dragenter','dragover'].forEach(ev => window.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.add('over');
+}));
+['dragleave','drop'].forEach(ev => window.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.remove('over');
+}));
+window.addEventListener('drop', e => loadFile(e.dataTransfer.files[0]));
+let saved = null;
+try { saved = localStorage.getItem(LS_KEY); } catch (e) { /* storage unavailable */ }
+if (saved) applyDesign(saved).catch(err => console.error('Saved design failed to load', err));
+</script>
+</body>
+</html>
