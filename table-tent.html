@@ -20,24 +20,53 @@
   }
 }
 </script>
-<meta name="ext-resource-dependency" content="uploads/GRUNGEF-LORRAINE.png" data-resource-id="design" />
+<meta name="ext-resource-dependency" content="uploads/grungeFBG.png" data-resource-id="bgF" />
+<meta name="ext-resource-dependency" content="uploads/grungeMBG.png" data-resource-id="bgM" />
+<meta name="ext-resource-dependency" content="uploads/Rocket Raccoon Free.otf" data-resource-id="font" />
+<meta name="ext-resource-dependency" content="uploads/ACHNBG.png" data-resource-id="bgB" />
+<meta name="ext-resource-dependency" content="uploads/pixelmix_bold.ttf" data-resource-id="fontB" />
+<meta name="ext-resource-dependency" content="uploads/pixelmix.ttf" data-resource-id="fontBreg" />
+<meta name="ext-resource-dependency" content="uploads/Background Remover from Photoroom.png" data-resource-id="ch0" />
+<meta name="ext-resource-dependency" content="uploads/Background Remover Image from Photoroom.png" data-resource-id="ch1" />
+<meta name="ext-resource-dependency" content="uploads/Background Remover Image (1).png" data-resource-id="ch2" />
+<meta name="ext-resource-dependency" content="uploads/Background Remover Image (2).png" data-resource-id="ch3" />
+<meta name="ext-resource-dependency" content="uploads/Background Remover Image (3).png" data-resource-id="ch4" />
+<meta name="ext-resource-dependency" content="uploads/IMG 5619 Background Remover.png" data-resource-id="ch5" />
+<meta name="ext-resource-dependency" content="uploads/IMG 5620 Background Remover.png" data-resource-id="ch6" />
+<meta name="ext-resource-dependency" content="uploads/IMG 5621 Background Remover.png" data-resource-id="ch7" />
+<meta name="ext-resource-dependency" content="uploads/IMG 5626 Background Remover.png" data-resource-id="ch8" />
+<meta name="ext-resource-dependency" content="uploads/IMG 5630 Background Remover.png" data-resource-id="ch9" />
+<meta name="ext-resource-dependency" content="uploads/IMG 5631 Background Remover.png" data-resource-id="ch10" />
 <style>
 html,body{margin:0;height:100%}
 three-d-stage:not(:defined){visibility:hidden}
-#drop{position:fixed;top:16px;left:16px;z-index:10;display:flex;align-items:center;gap:10px;
-  padding:12px 16px;border:1.5px dashed rgba(20,20,19,0.35);border-radius:10px;
-  background:rgba(255,255,255,0.9);color:#1a1915;font:13px/1.4 system-ui,sans-serif;
-  cursor:pointer;max-width:260px;transition:background .15s,border-color .15s}
-#drop:hover{background:#fff}
-#drop.over{background:#fdf9e8;border-color:#8a7b2f}
-#drop small{display:block;color:#7a766b}
-#file{display:none}
-#table-toggle{position:fixed;top:112px;left:16px;z-index:10;display:flex;align-items:center;gap:8px;
-  padding:9px 12px;border:1px solid rgba(20,20,19,0.18);border-radius:8px;
-  background:rgba(255,255,255,0.92);color:#1a1915;font:12.5px/1 system-ui,sans-serif;
-  cursor:pointer;user-select:none}
-#table-toggle:hover{background:#fff}
-#table-toggle input{margin:0;accent-color:#8a6f4d}
+#panel{position:fixed;top:16px;left:16px;z-index:10;display:flex;flex-direction:column;gap:10px;
+  padding:14px 16px;padding-top:20px;position:fixed;border:1.5px solid rgba(20,20,19,0.25);border-radius:12px;
+  background:rgba(255,253,240,0.95);color:#1a1915;font:13px/1.4 system-ui,sans-serif;width:250px;
+  box-shadow:0 4px 14px rgba(0,0,0,0.12);max-height:calc(100vh - 32px);overflow-y:auto;box-sizing:border-box}
+#panel.collapsed > :not(#collapseBtn){display:none}
+#panel.collapsed{width:auto;padding:8px 10px}
+#collapseBtn{position:absolute;top:8px;right:8px;width:24px;height:24px;border:1.5px solid rgba(20,20,19,0.3);border-radius:6px;background:#fff;color:#1a1915;font:700 14px/1 system-ui,sans-serif;cursor:pointer;padding:0}
+#panel.collapsed #collapseBtn{position:static}
+#panel label{font-weight:600;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#6b6455}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;padding:8px 0;border:1.5px solid rgba(20,20,19,0.3);border-radius:8px;
+  background:#fff;color:#1a1915;font:600 13px system-ui,sans-serif;cursor:pointer}
+.seg button.on{background:#1a1915;color:#f5f0dc;border-color:#1a1915}
+#charGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:5px}
+#charGrid button{aspect-ratio:1;padding:3px;border:1.5px solid rgba(20,20,19,0.25);border-radius:8px;
+  background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#charGrid button.on{border-color:#1a1915;box-shadow:0 0 0 1.5px #1a1915;background:#fdf6e0}
+#charGrid img{max-width:100%;max-height:100%;object-fit:contain;image-rendering:auto;pointer-events:none}
+#customBtn{margin-top:6px;width:100%;padding:8px 0;border:1.5px dashed rgba(20,20,19,0.4);border-radius:8px;
+  background:#fff;color:#1a1915;font:600 12px system-ui,sans-serif;cursor:pointer}
+#customBtn.on{border-style:solid;border-color:#1a1915;background:#fdf6e0}
+#nameInput{padding:9px 10px;border:1.5px solid rgba(20,20,19,0.3);border-radius:8px;
+  font:14px system-ui,sans-serif;background:#fff;color:#1a1915;width:100%;box-sizing:border-box}
+#nameInput:focus{outline:none;border-color:#1a1915}
+#dlBtn{padding:9px 0;border:1.5px solid #1a1915;border-radius:8px;background:#1a1915;color:#f5f0dc;
+  font:600 13px system-ui,sans-serif;cursor:pointer;width:100%}
+#dlBtn:hover{background:#33301f}
 </style>
 </head>
 <body>
@@ -45,33 +74,200 @@ three-d-stage:not(:defined){visibility:hidden}
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="#f0eee6"/><path d="M36 84 L60 40 L84 84 Z" fill="#8a6f4d"/><rect x="30" y="84" width="60" height="4" rx="2" fill="#c9c2b2"/></svg>
 </template>
 <three-d-stage name="a4-table-tent" autorotate></three-d-stage>
-<label id="drop" for="file">
-  <span style="font-size:20px">&#8853;</span>
-  <span><strong>Drop your A4 design here</strong> or click to browse<br>
-  <small>Landscape A4 &middot; bottom half = front, top half (upside-down) = back</small></span>
-</label>
-<input id="file" type="file" accept="image/*">
-<label id="table-toggle"><input id="show-table" type="checkbox" checked> Show table</label>
+<div id="panel">
+  <button id="collapseBtn" title="Collapse">−</button>
+  <div>
+    <label>Tent style</label>
+    <div id="tentToggle" class="seg" style="margin-top:5px">
+      <button id="btnTentA">A — Grunge</button>
+      <button id="btnTentB">B — Passport</button>
+    </div>
+  </div>
+  <div id="secA">
+    <label>Character</label>
+    <div id="bgToggle" class="seg" style="margin-top:5px">
+      <button id="btnF">Girl</button>
+      <button id="btnM">Guy</button>
+    </div>
+  </div>
+  <div id="secB" style="display:none">
+    <label>Character</label>
+    <div id="charGrid"></div>
+    <button id="customBtn">Drop / upload custom PNG…</button>
+    <input id="customFile" type="file" accept="image/png,image/webp" hidden>
+  </div>
+  <div>
+    <label for="nameInput">Name</label>
+    <input id="nameInput" type="text" placeholder="Type a name…" maxlength="40" autocomplete="off" style="margin-top:5px">
+  </div>
+  <button id="dlBtn">Download A4 PNG</button>
+</div>
 <script src="./three-d-stage.js"></script>
 <script type="module">
-// ============================================================
-// REPLACE THE DESIGN HERE: path to a landscape A4 artwork
-// (297x210, e.g. 3508x2481 px). Bottom half of the sheet = front
-// face; top half (printed upside-down) = back face.
-const DESIGN_URL = (window.__resources && window.__resources['design']) || 'uploads/GRUNGEF-LORRAINE.png';
-// ============================================================
+const R = window.__resources || {};
+const u = p => R[p] === undefined ? undefined : R[p];
+const BG = {
+  F: R['bgF'] || 'uploads/grungeFBG.png',
+  M: R['bgM'] || 'uploads/grungeMBG.png',
+  B: R['bgB'] || 'uploads/ACHNBG.png'
+};
+const FONT_URL = R['font'] || encodeURI('uploads/Rocket Raccoon Free.otf');
+const FONTB_URL = R['fontB'] || 'uploads/pixelmix_bold.ttf';
+const CHAR_FILES = [
+  'Background Remover from Photoroom.png',
+  'Background Remover Image from Photoroom.png',
+  'Background Remover Image (1).png',
+  'Background Remover Image (2).png',
+  'Background Remover Image (3).png',
+  'IMG 5619 Background Remover.png',
+  'IMG 5620 Background Remover.png',
+  'IMG 5621 Background Remover.png',
+  'IMG 5626 Background Remover.png',
+  'IMG 5630 Background Remover.png',
+  'IMG 5631 Background Remover.png'
+];
+const CHAR_URLS = CHAR_FILES.map((f, i) => R['ch' + i] || encodeURI('uploads/' + f));
+
+const IMG_W = 3508, IMG_H = 2481;
+// Tent A name box (parchment card)
+const BOX_A = { x: 1400, y: 1410, w: 1880, h: 920 };
+const INK_A = '#241c14';
+// Tent B name box (white passport field, clear of the palm art)
+const BOX_B = { x: 1230, y: 1700, w: 1340, h: 360 };
+const INK_B = '#111111';
+// Tent B character slot: bottom-center anchor over the photo frame
+const CH = { cx: 690, bottom: 2560, maxW: 950, maxH: 1330 };
 
 const stage = document.querySelector('three-d-stage');
 const { THREE } = await stage.ready;
 
-// A4 landscape folded along the long side: tent is 297mm wide,
-// each face 210/2 = 105mm. Base opening 90mm -> stands nicely.
-const W = 0.297, PANEL = 0.105, HALF_BASE = 0.045, T = 0.0006;
-const tilt = Math.asin(HALF_BASE / PANEL);           // lean from vertical
-const cy = (PANEL / 2) * Math.cos(tilt);             // panel center height
-const cz = HALF_BASE - (PANEL / 2) * Math.sin(tilt); // panel center depth
+const faceA = new FontFace('TentFont', `url("${FONT_URL}")`);
+await faceA.load();
+document.fonts.add(faceA);
+let boldOK = false;
+try {
+  const faceB = new FontFace('PixelMix', `url("${FONTB_URL}")`);
+  await faceB.load();
+  document.fonts.add(faceB);
+  boldOK = true;
+} catch (e) {
+  // bold ttf rejected by the font sanitizer — fall back to regular + faux-bold stroke
+  const faceB = new FontFace('PixelMix', `url("${R['fontBreg'] || 'uploads/pixelmix.ttf'}")`);
+  await faceB.load();
+  document.fonts.add(faceB);
+}
 
-const loader = new THREE.TextureLoader();
+function loadImg(src) {
+  return new Promise((res, rej) => {
+    const im = new Image();
+    im.onload = () => res(im); im.onerror = rej; im.src = src;
+  });
+}
+const [imgF, imgM, imgB] = await Promise.all([loadImg(BG.F), loadImg(BG.M), loadImg(BG.B)]);
+const imgs = { F: imgF, M: imgM };
+const charCache = {};
+async function getChar(i) {
+  if (!charCache[i]) charCache[i] = await loadImg(CHAR_URLS[i]);
+  return charCache[i];
+}
+
+const canvas = document.createElement('canvas');
+canvas.width = IMG_W; canvas.height = IMG_H;
+const ctx = canvas.getContext('2d');
+
+function wrapLines(text, size, maxW, font) {
+  ctx.font = `${size}px ${font}`;
+  const lines = [];
+  for (const seg of text.split('\n')) {
+    const words = seg.split(/\s+/).filter(Boolean);
+    if (!words.length) { lines.push(''); continue; }
+    let cur = '';
+    for (const w of words) {
+      const t = cur ? cur + ' ' + w : w;
+      if (ctx.measureText(t).width <= maxW) cur = t;
+      else { if (cur) lines.push(cur); cur = w; }
+    }
+    if (cur) lines.push(cur);
+  }
+  return lines;
+}
+
+function fitText(text, box, font, maxSize, lh = 0.95) {
+  const MIN = 40;
+  for (let size = maxSize; size >= MIN; size -= 10) {
+    const lines = wrapLines(text, size, box.w, font);
+    const lineH = size * lh;
+    ctx.font = `${size}px ${font}`;
+    const tooWide = lines.some(l => ctx.measureText(l).width > box.w);
+    if (!tooWide && lines.length * lineH <= box.h) return { lines, size, lineH };
+  }
+  return { lines: wrapLines(text, MIN, box.w, font), size: MIN, lineH: MIN * lh };
+}
+
+function drawFitted(text, box, font, maxSize, draw, lh) {
+  const { lines, size, lineH } = fitText(text, box, font, maxSize, lh);
+  ctx.font = `${size}px ${font}`;
+  const m0 = ctx.measureText(lines[0]);
+  const mL = ctx.measureText(lines[lines.length - 1]);
+  const blockH = (lines.length - 1) * lineH + m0.actualBoundingBoxAscent + mL.actualBoundingBoxDescent;
+  const firstBase = box.y + (box.h - blockH) / 2 + m0.actualBoundingBoxAscent;
+  draw(lines, size, lineH, firstBase);
+}
+
+function composeA(bgKey, name) {
+  ctx.clearRect(0, 0, IMG_W, IMG_H);
+  ctx.drawImage(imgs[bgKey], 0, 0, IMG_W, IMG_H);
+  const text = (name || '').replace(/\\n/g, '\n').trim();
+  if (!text) return;
+  drawFitted(text, BOX_A, 'TentFont', 900, (lines, size, lineH, startY) => {
+    ctx.fillStyle = INK_A;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.strokeStyle = '#f7f2dc';
+    ctx.lineWidth = size * 0.16;
+    ctx.lineJoin = 'round';
+    ctx.miterLimit = 2;
+    ctx.save();
+    ctx.shadowColor = 'rgba(20,15,8,0.45)';
+    ctx.shadowBlur = 18;
+    ctx.shadowOffsetX = 14;
+    ctx.shadowOffsetY = 18;
+    lines.forEach((l, i) => ctx.strokeText(l, BOX_A.x, startY + i * lineH));
+    ctx.restore();
+    lines.forEach((l, i) => ctx.fillText(l, BOX_A.x, startY + i * lineH));
+  });
+}
+
+function composeB(charImg, name) {
+  ctx.clearRect(0, 0, IMG_W, IMG_H);
+  ctx.drawImage(imgB, 0, 0, IMG_W, IMG_H);
+  if (charImg) {
+    const s = Math.min(CH.maxW / charImg.width, CH.maxH / charImg.height);
+    const w = charImg.width * s, h = charImg.height * s;
+    ctx.save();
+    ctx.shadowColor = 'rgba(30,20,10,0.38)';
+    ctx.shadowBlur = 34;
+    ctx.shadowOffsetX = 22;
+    ctx.shadowOffsetY = 28;
+    ctx.drawImage(charImg, CH.cx - w / 2, CH.bottom - h, w, h);
+    ctx.restore();
+  }
+  const text = (name || '').replace(/\\n/g, '\n').trim();
+  if (!text) return;
+  drawFitted(text, BOX_B, 'PixelMix', 340, (lines, size, lineH, startY) => {
+    ctx.fillStyle = INK_B;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    if (!boldOK) {
+      ctx.strokeStyle = INK_B;
+      ctx.lineWidth = size * 0.09;
+      ctx.lineJoin = 'miter';
+      lines.forEach((l, i) => ctx.strokeText(l, BOX_B.x, startY + i * lineH));
+    }
+    lines.forEach((l, i) => ctx.fillText(l, BOX_B.x, startY + i * lineH));
+  }, 1.25);
+}
+
 const paper = new THREE.MeshPhysicalMaterial({ color: 0xf5f0dc, roughness: 0.92, sheen: 0.4, sheenRoughness: 0.9, sheenColor: 0xffffff });
 paper.name = 'paper';
 const printFront = new THREE.MeshPhysicalMaterial({ roughness: 0.55, clearcoat: 0.25, clearcoatRoughness: 0.6 });
@@ -79,26 +275,42 @@ printFront.name = 'print-front';
 const printBack = new THREE.MeshPhysicalMaterial({ roughness: 0.55, clearcoat: 0.25, clearcoatRoughness: 0.6 });
 printBack.name = 'print-back';
 
-async function applyDesign(url) {
-  const src = await loader.loadAsync(url);
-  src.colorSpace = THREE.SRGBColorSpace;
-  src.anisotropy = 8;
-  // bottom half of the sheet -> front face
-  const texFront = src.clone();
-  texFront.repeat.set(1, 0.5); texFront.offset.set(0, 0);
-  // top half (printed upside-down) -> back face, rotated 180°
-  const texBack = src.clone();
-  texBack.repeat.set(-1, -0.5); texBack.offset.set(1, 1);
-  if (printFront.map) printFront.map.dispose();
-  if (printBack.map) printBack.map.dispose();
-  printFront.map = texFront; printFront.needsUpdate = true;
-  printBack.map = texBack; printBack.needsUpdate = true;
+const srcTex = new THREE.CanvasTexture(canvas);
+srcTex.colorSpace = THREE.SRGBColorSpace;
+srcTex.anisotropy = 8;
+const texFront = srcTex.clone();
+texFront.repeat.set(1, 0.5); texFront.offset.set(0, 0);
+const texBack = srcTex.clone();
+texBack.repeat.set(-1, -0.5); texBack.offset.set(1, 1);
+printFront.map = texFront;
+printBack.map = texBack;
+
+const LS_TENT = 'tabletent-tent', LS_BG = 'tabletent-bg', LS_NAME = 'tabletent-name', LS_CHAR = 'tabletent-char';
+let tent = localStorage.getItem(LS_TENT) === 'B' ? 'B' : 'A';
+let bgKey = localStorage.getItem(LS_BG) === 'M' ? 'M' : 'F';
+let name = localStorage.getItem(LS_NAME) ?? 'Lorraine';
+let charSel = parseInt(localStorage.getItem(LS_CHAR), 10); if (isNaN(charSel)) charSel = 0;
+let customImg = null; // -1 = custom
+
+async function refresh() {
+  if (tent === 'A') {
+    composeA(bgKey, name);
+  } else {
+    const img = charSel === -1 ? customImg : await getChar(charSel);
+    composeB(img, name);
+  }
+  texFront.needsUpdate = true;
+  texBack.needsUpdate = true;
 }
-await applyDesign(DESIGN_URL);
+await refresh();
+
+const W = 0.297, PANEL = 0.105, HALF_BASE = 0.045, T = 0.0006;
+const tilt = Math.asin(HALF_BASE / PANEL);
+const cy = (PANEL / 2) * Math.cos(tilt);
+const cz = HALF_BASE - (PANEL / 2) * Math.sin(tilt);
 
 function panel(printMat, name) {
   const geo = new THREE.BoxGeometry(W, PANEL, T);
-  // box material order: +x,-x,+y,-y,+z,-z — print on outward +z face
   const mesh = new THREE.Mesh(geo, [paper, paper, paper, paper, printMat, paper]);
   mesh.name = name;
   mesh.castShadow = true;
@@ -108,87 +320,130 @@ function panel(printMat, name) {
 const model = new THREE.Group();
 model.name = 'a4-table-tent-on-table';
 
-// Table: a wooden top slab with four legs
 const wood = new THREE.MeshPhysicalMaterial({ color: 0x9c7a52, roughness: 0.45, clearcoat: 0.5, clearcoatRoughness: 0.35 });
 wood.name = 'table-wood';
 const TOP_W = 0.5, TOP_D = 0.36, TOP_T = 0.03, LEG_H = 0.14, LEG_R = 0.018;
-const table = new THREE.Group();
-table.name = 'table';
 const top = new THREE.Mesh(new THREE.BoxGeometry(TOP_W, TOP_T, TOP_D), wood);
 top.name = 'table-top';
 top.position.y = -TOP_T / 2;
-table.add(top);
+model.add(top);
 const inX = TOP_W / 2 - 0.07, inZ = TOP_D / 2 - 0.07;
 [[-inX, -inZ], [inX, -inZ], [-inX, inZ], [inX, inZ]].forEach(([x, z], i) => {
   const leg = new THREE.Mesh(new THREE.CylinderGeometry(LEG_R, LEG_R * 0.8, LEG_H, 24), wood);
   leg.name = 'table-leg-' + (i + 1);
   leg.position.set(x, -TOP_T - LEG_H / 2, z);
-  table.add(leg);
+  model.add(leg);
 });
-model.add(table);
 
-const tent = new THREE.Group();
-tent.name = 'a4-table-tent';
-model.add(tent);
+const tentGrp = new THREE.Group();
+tentGrp.name = 'a4-table-tent';
+model.add(tentGrp);
 
 const front = panel(printFront, 'front-panel');
 front.rotation.x = -tilt;
 front.position.set(0, cy, cz);
-tent.add(front);
+tentGrp.add(front);
 
 const back = panel(printBack, 'back-panel');
 back.rotation.set(tilt, Math.PI, 0);
 back.position.set(0, cy, -cz);
-tent.add(back);
+tentGrp.add(back);
 
 stage.setObject(model);
-// Close-up default view on the tent's front face, slightly above and to the left
 stage._camera.position.set(-0.14, 0.16, 0.34);
 stage._controls.target.set(0, 0.045, 0);
 stage._controls.update();
 
-// Table toggle — detaches the table from the model (exports follow the
-// toggle) and rests the ground shadow plane under whatever remains.
-const showTable = document.getElementById('show-table');
-const TABLE_KEY = 'tabletent-show-table';
-function setTableVisible(on) {
-  if (on && table.parent !== model) model.add(table);
-  if (!on && table.parent === model) model.remove(table);
-  stage._ground.position.y = new THREE.Box3().setFromObject(model).min.y;
-  showTable.checked = on;
-  try { localStorage.setItem(TABLE_KEY, on ? '1' : '0'); } catch (e) { /* storage unavailable */ }
-}
-showTable.addEventListener('change', () => setTableVisible(showTable.checked));
-// ?table=0 / ?table=1 in the URL wins; otherwise the last choice is remembered.
-const tableParam = new URLSearchParams(location.search).get('table');
-let savedTable = null;
-try { savedTable = localStorage.getItem(TABLE_KEY); } catch (e) { /* storage unavailable */ }
-if (tableParam === '0' || (tableParam !== '1' && savedTable === '0')) setTableVisible(false);
+// Controls
+const $ = id => document.getElementById(id);
+const btnTentA = $('btnTentA'), btnTentB = $('btnTentB');
+const btnF = $('btnF'), btnM = $('btnM');
+const nameInput = $('nameInput');
+const charGrid = $('charGrid'), customBtn = $('customBtn'), customFile = $('customFile');
 
-// Drag & drop / file-picker to swap the design (persists across reloads)
-const drop = document.getElementById('drop');
-const file = document.getElementById('file');
-const LS_KEY = 'tabletent-design';
-function loadFile(f) {
-  if (!f || !f.type.startsWith('image/')) return;
-  const r = new FileReader();
-  r.onload = () => {
-    applyDesign(r.result);
-    try { localStorage.setItem(LS_KEY, r.result); } catch (e) { /* too big to persist */ }
-  };
-  r.readAsDataURL(f);
+CHAR_URLS.forEach((url, i) => {
+  const b = document.createElement('button');
+  b.title = 'Preset ' + (i + 1);
+  const im = document.createElement('img');
+  im.src = url; im.loading = 'lazy';
+  b.appendChild(im);
+  b.onclick = () => { charSel = i; localStorage.setItem(LS_CHAR, i); syncUI(); refresh(); };
+  charGrid.appendChild(b);
+});
+
+function syncUI() {
+  btnTentA.classList.toggle('on', tent === 'A');
+  btnTentB.classList.toggle('on', tent === 'B');
+  $('secA').style.display = tent === 'A' ? '' : 'none';
+  $('secB').style.display = tent === 'B' ? '' : 'none';
+  btnF.classList.toggle('on', bgKey === 'F');
+  btnM.classList.toggle('on', bgKey === 'M');
+  [...charGrid.children].forEach((b, i) => b.classList.toggle('on', tent === 'B' && charSel === i));
+  customBtn.classList.toggle('on', charSel === -1);
 }
-file.addEventListener('change', () => loadFile(file.files[0]));
-['dragenter','dragover'].forEach(ev => window.addEventListener(ev, e => {
-  e.preventDefault(); drop.classList.add('over');
-}));
-['dragleave','drop'].forEach(ev => window.addEventListener(ev, e => {
-  e.preventDefault(); drop.classList.remove('over');
-}));
-window.addEventListener('drop', e => loadFile(e.dataTransfer.files[0]));
-let saved = null;
-try { saved = localStorage.getItem(LS_KEY); } catch (e) { /* storage unavailable */ }
-if (saved) applyDesign(saved).catch(err => console.error('Saved design failed to load', err));
+
+
+
+btnTentA.onclick = () => { tent = 'A'; localStorage.setItem(LS_TENT, 'A'); syncUI(); refresh(); };
+btnTentB.onclick = () => { tent = 'B'; localStorage.setItem(LS_TENT, 'B'); syncUI(); refresh(); };
+btnF.onclick = () => { bgKey = 'F'; localStorage.setItem(LS_BG, 'F'); syncUI(); refresh(); };
+btnM.onclick = () => { bgKey = 'M'; localStorage.setItem(LS_BG, 'M'); syncUI(); refresh(); };
+
+function useCustomFile(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const url = URL.createObjectURL(file);
+  loadImg(url).then(im => {
+    customImg = im; charSel = -1;
+    localStorage.setItem(LS_CHAR, '-1');
+    syncUI(); refresh();
+  });
+}
+customBtn.onclick = () => customFile.click();
+customFile.onchange = () => useCustomFile(customFile.files[0]);
+// drag & drop anywhere on the page
+addEventListener('dragover', e => e.preventDefault());
+addEventListener('drop', e => { e.preventDefault(); if (tent === 'B') useCustomFile(e.dataTransfer.files[0]); });
+
+// if reload landed on custom with no image, fall back to preset 0
+if (charSel === -1 && !customImg) charSel = 0;
+
+nameInput.value = name;
+nameInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const s = nameInput.selectionStart, en = nameInput.selectionEnd;
+    nameInput.value = nameInput.value.slice(0, s) + '\\n' + nameInput.value.slice(en);
+    nameInput.selectionStart = nameInput.selectionEnd = s + 2;
+    nameInput.dispatchEvent(new Event('input'));
+  }
+});
+nameInput.addEventListener('input', () => {
+  name = nameInput.value;
+  localStorage.setItem(LS_NAME, name);
+  refresh();
+});
+syncUI();
+
+const panelEl = $('panel'), collapseBtn = $('collapseBtn');
+if (localStorage.getItem('tabletent-panel') === 'closed') { panelEl.classList.add('collapsed'); collapseBtn.textContent = '☰'; collapseBtn.title = 'Expand'; }
+collapseBtn.onclick = () => {
+  const closed = panelEl.classList.toggle('collapsed');
+  collapseBtn.textContent = closed ? '☰' : '−';
+  collapseBtn.title = closed ? 'Expand' : 'Collapse';
+  localStorage.setItem('tabletent-panel', closed ? 'closed' : 'open');
+};
+
+$('dlBtn').onclick = () => {
+  canvas.toBlob(blob => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const who = tent === 'A' ? (bgKey === 'F' ? 'girl' : 'guy') : (charSel === -1 ? 'custom' : 'char' + (charSel + 1));
+    const safe = (name.trim() || 'blank').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+    a.download = `table-tent-${tent.toLowerCase()}-${who}-${safe}.png`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  }, 'image/png');
+};
 </script>
 </body>
 </html>
