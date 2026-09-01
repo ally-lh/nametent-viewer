@@ -67,6 +67,18 @@ three-d-stage:not(:defined){visibility:hidden}
 #dlBtn{padding:9px 0;border:1.5px solid #1a1915;border-radius:8px;background:#1a1915;color:#f5f0dc;
   font:600 13px system-ui,sans-serif;cursor:pointer;width:100%}
 #dlBtn:hover{background:#33301f}
+#loader{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  background:#f0eee6;color:#1a1915;font:14px/1.5 system-ui,sans-serif;text-align:center;padding:24px;
+  transition:opacity .35s ease}
+#loader.done{opacity:0;pointer-events:none}
+#loader .spin{width:44px;height:44px;border-radius:50%;border:4px solid rgba(20,20,19,0.12);border-top-color:#8a6f4d;
+  animation:spin .9s linear infinite}
+#loader.error .spin{display:none}
+#loader.error #loaderMsg{color:#8a2f20;max-width:420px;white-space:pre-line}
+#loaderTitle{font-weight:600;font-size:16px}
+#loaderMsg{color:#6b6455;min-height:1.5em}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#loader .spin{animation-duration:2s}}
 </style>
 </head>
 <body>
@@ -74,6 +86,11 @@ three-d-stage:not(:defined){visibility:hidden}
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="#f0eee6"/><path d="M36 84 L60 40 L84 84 Z" fill="#8a6f4d"/><rect x="30" y="84" width="60" height="4" rx="2" fill="#c9c2b2"/></svg>
 </template>
 <three-d-stage name="a4-table-tent" autorotate></three-d-stage>
+<div id="loader" role="status" aria-live="polite">
+  <div class="spin"></div>
+  <div id="loaderTitle">Setting up your table tent</div>
+  <div id="loaderMsg">Loading 3D engine…</div>
+</div>
 <div id="panel">
   <button id="collapseBtn" title="Collapse">−</button>
   <div>
@@ -104,6 +121,21 @@ three-d-stage:not(:defined){visibility:hidden}
 </div>
 <script src="./three-d-stage.js"></script>
 <script type="module">
+// Loading overlay — visible until the first frame is ready; becomes an
+// error panel if any step of the setup throws (instead of a blank page).
+const loaderEl = document.getElementById('loader');
+const loaderMsg = document.getElementById('loaderMsg');
+const setStatus = msg => { loaderMsg.textContent = msg; };
+function showLoadError(err) {
+  console.error('Table tent failed to load', err);
+  loaderEl.classList.remove('done');
+  loaderEl.classList.add('error');
+  document.getElementById('loaderTitle').textContent = 'Couldn’t load the table tent';
+  setStatus('Please check your connection and reload.\n' + String(err && err.message ? err.message : err));
+}
+addEventListener('unhandledrejection', e => showLoadError(e.reason));
+addEventListener('error', e => showLoadError(e.error || e.message));
+
 const R = window.__resources || {};
 const u = p => R[p] === undefined ? undefined : R[p];
 const BG = {
@@ -141,6 +173,7 @@ const CH = { cx: 690, bottom: 2560, maxW: 950, maxH: 1330 };
 const stage = document.querySelector('three-d-stage');
 const { THREE } = await stage.ready;
 
+setStatus('Loading fonts…');
 const faceA = new FontFace('TentFont', `url("${FONT_URL}")`);
 await faceA.load();
 document.fonts.add(faceA);
@@ -163,6 +196,7 @@ function loadImg(src) {
     im.onload = () => res(im); im.onerror = rej; im.src = src;
   });
 }
+setStatus('Loading artwork…');
 const [imgF, imgM, imgB] = await Promise.all([loadImg(BG.F), loadImg(BG.M), loadImg(BG.B)]);
 const imgs = { F: imgF, M: imgM };
 const charCache = {};
@@ -302,6 +336,7 @@ async function refresh() {
   texFront.needsUpdate = true;
   texBack.needsUpdate = true;
 }
+setStatus('Building the tent…');
 await refresh();
 
 const W = 0.297, PANEL = 0.105, HALF_BASE = 0.045, T = 0.0006;
@@ -353,6 +388,9 @@ stage.setObject(model);
 stage._camera.position.set(-0.14, 0.16, 0.34);
 stage._controls.target.set(0, 0.045, 0);
 stage._controls.update();
+// First frame is ready — fade the overlay out (kept in the DOM so an error
+// later in setup can still surface through it).
+requestAnimationFrame(() => loaderEl.classList.add('done'));
 
 // Controls
 const $ = id => document.getElementById(id);
