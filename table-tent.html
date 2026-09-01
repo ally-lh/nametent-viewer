@@ -20,10 +20,10 @@
   }
 }
 </script>
-<meta name="ext-resource-dependency" content="uploads/grungeFBG.png" data-resource-id="bgF" />
-<meta name="ext-resource-dependency" content="uploads/grungeMBG.png" data-resource-id="bgM" />
+<meta name="ext-resource-dependency" content="uploads/grungeFBG-bleed.jpg" data-resource-id="bgF" />
+<meta name="ext-resource-dependency" content="uploads/grungeMBG-bleed.jpg" data-resource-id="bgM" />
 <meta name="ext-resource-dependency" content="uploads/Rocket Raccoon Free.otf" data-resource-id="font" />
-<meta name="ext-resource-dependency" content="uploads/ACHNBG.png" data-resource-id="bgB" />
+<meta name="ext-resource-dependency" content="uploads/ACHNBG-bleed.jpg" data-resource-id="bgB" />
 <meta name="ext-resource-dependency" content="uploads/pixelmix_bold.ttf" data-resource-id="fontB" />
 <meta name="ext-resource-dependency" content="uploads/pixelmix.ttf" data-resource-id="fontBreg" />
 <meta name="ext-resource-dependency" content="uploads/Background Remover from Photoroom.png" data-resource-id="ch0" />
@@ -64,9 +64,18 @@ three-d-stage:not(:defined){visibility:hidden}
 #nameInput{padding:9px 10px;border:1.5px solid rgba(20,20,19,0.3);border-radius:8px;
   font:14px system-ui,sans-serif;background:#fff;color:#1a1915;width:100%;box-sizing:border-box}
 #nameInput:focus{outline:none;border-color:#1a1915}
-#dlBtn{padding:9px 0;border:1.5px solid #1a1915;border-radius:8px;background:#1a1915;color:#f5f0dc;
-  font:600 13px system-ui,sans-serif;cursor:pointer;width:100%}
-#dlBtn:hover{background:#33301f}
+#panel label.chk{display:flex;align-items:center;gap:8px;font:500 13px system-ui,sans-serif;cursor:pointer;user-select:none;
+  text-transform:none;letter-spacing:0;color:#1a1915}
+#panel label.chk input{margin:0;accent-color:#b3261e}
+#panel label.chk small{color:#6b6455;font-weight:400;font-size:12px}
+.dl{display:flex;flex-direction:column;gap:6px}
+.dl button{padding:8px 10px;border:1.5px solid #1a1915;border-radius:8px;background:#1a1915;color:#f5f0dc;
+  font:600 13px/1.3 system-ui,sans-serif;cursor:pointer;width:100%;text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:1px}
+.dl button small{font-weight:400;font-size:11.5px;opacity:.75;white-space:nowrap}
+.dl button:hover{background:#33301f}
+.dl button[disabled]{opacity:.55;cursor:progress}
+#dlNote{font:12px/1.4 system-ui,sans-serif;color:#6b6455;text-transform:none;letter-spacing:0}
+#dlNote.err{color:#8a2f20}
 #loader{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
   background:#f0eee6;color:#1a1915;font:14px/1.5 system-ui,sans-serif;text-align:center;padding:24px;
   transition:opacity .35s ease}
@@ -117,7 +126,15 @@ three-d-stage:not(:defined){visibility:hidden}
     <label for="nameInput">Name</label>
     <input id="nameInput" type="text" placeholder="Type a name…" maxlength="40" autocomplete="off" style="margin-top:5px">
   </div>
-  <button id="dlBtn">Download A4 PNG</button>
+  <label class="chk"><input id="bleedChk" type="checkbox"> Show bleed area <small>(outside A4)</small></label>
+  <div>
+    <label>Download PDF</label>
+    <div class="dl" style="margin-top:5px">
+      <button id="dlBleedBtn"><span>With bleed</span><small>306 × 216 mm · for the print shop</small></button>
+      <button id="dlTrimBtn"><span>Without bleed</span><small>A4 · 297 × 210 mm · trimmed</small></button>
+    </div>
+    <div id="dlNote" style="margin-top:6px">300 dpi · print-ready</div>
+  </div>
 </div>
 <script src="./three-d-stage.js"></script>
 <script type="module">
@@ -139,9 +156,9 @@ addEventListener('error', e => showLoadError(e.error || e.message));
 const R = window.__resources || {};
 const u = p => R[p] === undefined ? undefined : R[p];
 const BG = {
-  F: R['bgF'] || 'uploads/grungeFBG.png',
-  M: R['bgM'] || 'uploads/grungeMBG.png',
-  B: R['bgB'] || 'uploads/ACHNBG.png'
+  F: R['bgF'] || 'uploads/grungeFBG-bleed.jpg',
+  M: R['bgM'] || 'uploads/grungeMBG-bleed.jpg',
+  B: R['bgB'] || 'uploads/ACHNBG-bleed.jpg'
 };
 const FONT_URL = R['font'] || encodeURI('uploads/Rocket Raccoon Free.otf');
 const FONTB_URL = R['fontB'] || 'uploads/pixelmix_bold.ttf';
@@ -160,15 +177,29 @@ const CHAR_FILES = [
 ];
 const CHAR_URLS = CHAR_FILES.map((f, i) => R['ch' + i] || encodeURI('uploads/' + f));
 
-const IMG_W = 3508, IMG_H = 2481;
+// Print sheet with bleed: 306.07 x 216.41 mm at 300 dpi (3615 x 2556 px).
+// The finished tent is A4 landscape (297 x 210 mm = 3508 x 2481 px) centred
+// on that sheet; everything outside it is bleed. The fold runs through the
+// page centre.
+const DPI = 300, PX_PER_MM = DPI / 25.4;
+const IMG_W = 3615, IMG_H = 2556;
+const A4_W_MM = 297, A4_H_MM = 210;
+const A4_W = Math.round(A4_W_MM * PX_PER_MM), A4_H = Math.round(A4_H_MM * PX_PER_MM); // 3508 x 2481
+const OX = Math.round((IMG_W - A4_W) / 2), OY = Math.round((IMG_H - A4_H) / 2);      // centring offset
+const TRIM = { x: OX, y: OY, w: A4_W, h: A4_H };
+const SHEET_W_MM = IMG_W / PX_PER_MM, SHEET_H_MM = IMG_H / PX_PER_MM;                // 306.07 x 216.41
+// Layout boxes were measured on the A4 artwork — shift them by the centring offset.
 // Tent A name box (parchment card)
-const BOX_A = { x: 1400, y: 1410, w: 1880, h: 920 };
+const BOX_A = { x: 1400 + OX, y: 1410 + OY, w: 1880, h: 920 };
 const INK_A = '#241c14';
 // Tent B name box (white passport field, clear of the palm art)
-const BOX_B = { x: 1230, y: 1700, w: 1340, h: 360 };
+const BOX_B = { x: 1230 + OX, y: 1700 + OY, w: 1340, h: 360 };
 const INK_B = '#111111';
 // Tent B character slot: bottom-center anchor over the photo frame
-const CH = { cx: 690, bottom: 2560, maxW: 950, maxH: 1330 };
+const CH = { cx: 690 + OX, bottom: 2560 + OY, maxW: 950, maxH: 1330 };
+// Bleed guide overlay (3D preview only — never drawn into the download)
+const BLEED_TINT = 'rgba(220, 40, 40, 0.32)';
+const BLEED_LINE = 'rgba(220, 40, 40, 0.9)';
 
 const stage = document.querySelector('three-d-stage');
 const { THREE } = await stage.ready;
@@ -309,15 +340,46 @@ printFront.name = 'print-front';
 const printBack = new THREE.MeshPhysicalMaterial({ roughness: 0.55, clearcoat: 0.25, clearcoatRoughness: 0.6 });
 printBack.name = 'print-back';
 
-const srcTex = new THREE.CanvasTexture(canvas);
+// The 3D tent samples a separate "view" canvas: the clean composition plus,
+// when enabled, the red bleed guide. `canvas` itself stays print-clean.
+const viewCanvas = document.createElement('canvas');
+viewCanvas.width = IMG_W; viewCanvas.height = IMG_H;
+const vctx = viewCanvas.getContext('2d');
+let showBleed = false;
+
+function paintView() {
+  vctx.clearRect(0, 0, IMG_W, IMG_H);
+  vctx.drawImage(canvas, 0, 0);
+  if (!showBleed) return;
+  vctx.fillStyle = BLEED_TINT;
+  vctx.fillRect(0, 0, IMG_W, TRIM.y);                                   // top
+  vctx.fillRect(0, TRIM.y + TRIM.h, IMG_W, IMG_H - TRIM.y - TRIM.h);   // bottom
+  vctx.fillRect(0, TRIM.y, TRIM.x, TRIM.h);                              // left
+  vctx.fillRect(TRIM.x + TRIM.w, TRIM.y, IMG_W - TRIM.x - TRIM.w, TRIM.h); // right
+  vctx.strokeStyle = BLEED_LINE;
+  vctx.lineWidth = 3;
+  vctx.strokeRect(TRIM.x + 1.5, TRIM.y + 1.5, TRIM.w - 3, TRIM.h - 3);  // cut line
+}
+
+const srcTex = new THREE.CanvasTexture(viewCanvas);
 srcTex.colorSpace = THREE.SRGBColorSpace;
 srcTex.anisotropy = 8;
 const texFront = srcTex.clone();
-texFront.repeat.set(1, 0.5); texFront.offset.set(0, 0);
 const texBack = srcTex.clone();
-texBack.repeat.set(-1, -0.5); texBack.offset.set(1, 1);
 printFront.map = texFront;
 printBack.map = texBack;
+
+// UV windows. Bleed off: each face shows its half of the TRIM area (what the
+// cut tent looks like). Bleed on: the whole sheet, so the tinted margins are
+// visible around the cut line. Texture v=0 is the bottom row of the image.
+function applyTextureWindow() {
+  const win = showBleed ? { x: 0, y: 0, w: IMG_W, h: IMG_H } : TRIM;
+  const u0 = win.x / IMG_W, uw = win.w / IMG_W;
+  const vBottom = (IMG_H - win.y - win.h) / IMG_H, vh = win.h / 2 / IMG_H;
+  texFront.repeat.set(uw, vh); texFront.offset.set(u0, vBottom);      // lower half
+  texBack.repeat.set(-uw, -vh); texBack.offset.set(u0 + uw, vBottom + 2 * vh); // upper half, rotated 180°
+}
+applyTextureWindow();
 
 const LS_TENT = 'tabletent-tent', LS_BG = 'tabletent-bg', LS_NAME = 'tabletent-name', LS_CHAR = 'tabletent-char';
 let tent = localStorage.getItem(LS_TENT) === 'B' ? 'B' : 'A';
@@ -333,13 +395,16 @@ async function refresh() {
     const img = charSel === -1 ? customImg : await getChar(charSel);
     composeB(img, name);
   }
+  paintView();
   texFront.needsUpdate = true;
   texBack.needsUpdate = true;
 }
 setStatus('Building the tent…');
 await refresh();
 
-const W = 0.297, PANEL = 0.105, HALF_BASE = 0.045, T = 0.0006;
+// Tent geometry in metres: the trimmed A4 sheet folded across the short
+// side, so each face is 297 x 105 mm.
+const W = A4_W_MM / 1000, PANEL = A4_H_MM / 2 / 1000, HALF_BASE = 0.045, T = 0.0006;
 const tilt = Math.asin(HALF_BASE / PANEL);
 const cy = (PANEL / 2) * Math.cos(tilt);
 const cz = HALF_BASE - (PANEL / 2) * Math.sin(tilt);
@@ -427,6 +492,23 @@ btnTentB.onclick = () => { tent = 'B'; localStorage.setItem(LS_TENT, 'B'); syncU
 btnF.onclick = () => { bgKey = 'F'; localStorage.setItem(LS_BG, 'F'); syncUI(); refresh(); };
 btnM.onclick = () => { bgKey = 'M'; localStorage.setItem(LS_BG, 'M'); syncUI(); refresh(); };
 
+// Bleed guide toggle — affects the 3D preview only; the download stays clean.
+const LS_BLEED = 'tabletent-bleed';
+const bleedChk = $('bleedChk');
+function setBleed(on) {
+  showBleed = on;
+  bleedChk.checked = on;
+  applyTextureWindow();
+  paintView();
+  texFront.needsUpdate = true;
+  texBack.needsUpdate = true;
+}
+bleedChk.addEventListener('change', () => {
+  setBleed(bleedChk.checked);
+  localStorage.setItem(LS_BLEED, bleedChk.checked ? '1' : '0');
+});
+if (localStorage.getItem(LS_BLEED) === '1') setBleed(true);
+
 function useCustomFile(file) {
   if (!file || !file.type.startsWith('image/')) return;
   const url = URL.createObjectURL(file);
@@ -471,17 +553,66 @@ collapseBtn.onclick = () => {
   localStorage.setItem('tabletent-panel', closed ? 'closed' : 'open');
 };
 
-$('dlBtn').onclick = () => {
-  canvas.toBlob(blob => {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    const who = tent === 'A' ? (bgKey === 'F' ? 'girl' : 'guy') : (charSel === -1 ? 'custom' : 'char' + (charSel + 1));
-    const safe = (name.trim() || 'blank').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
-    a.download = `table-tent-${tent.toLowerCase()}-${who}-${safe}.png`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-  }, 'image/png');
-};
+// PDF export. jsPDF is fetched on first use so it never delays page load;
+// the pinned build is integrity-checked like the three.js import map.
+const JSPDF_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js';
+const JSPDF_SRI = 'sha384-ytX5osgYad9GPnagB0k+CxKTir/bsE7AfpzvCnQ7owfeWuDd+2l2y0PSIqRK+z/2';
+const PDF_JPEG_QUALITY = 0.95;
+let jsPDFLoading = null;
+function loadJsPDF() {
+  if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
+  if (!jsPDFLoading) {
+    jsPDFLoading = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = JSPDF_URL; s.integrity = JSPDF_SRI; s.crossOrigin = 'anonymous';
+      s.onload = () => (window.jspdf && window.jspdf.jsPDF)
+        ? resolve(window.jspdf.jsPDF)
+        : reject(new Error('PDF library did not initialise'));
+      s.onerror = () => { jsPDFLoading = null; reject(new Error('could not download the PDF library — check your connection')); };
+      document.head.appendChild(s);
+    });
+  }
+  return jsPDFLoading;
+}
+
+// The sheet to print: the full composition (with bleed) or the A4 trim crop.
+function sheetFor(withBleed) {
+  if (withBleed) return { source: canvas, wMm: SHEET_W_MM, hMm: SHEET_H_MM, tag: 'bleed-306x216mm' };
+  const c = document.createElement('canvas');
+  c.width = TRIM.w; c.height = TRIM.h;
+  c.getContext('2d').drawImage(canvas, TRIM.x, TRIM.y, TRIM.w, TRIM.h, 0, 0, TRIM.w, TRIM.h);
+  return { source: c, wMm: A4_W_MM, hMm: A4_H_MM, tag: 'a4-297x210mm' };
+}
+
+function fileBase() {
+  const who = tent === 'A' ? (bgKey === 'F' ? 'girl' : 'guy') : (charSel === -1 ? 'custom' : 'char' + (charSel + 1));
+  const safe = (name.trim() || 'blank').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+  return `table-tent-${tent.toLowerCase()}-${who}-${safe}`;
+}
+
+const dlBleedBtn = $('dlBleedBtn'), dlTrimBtn = $('dlTrimBtn'), dlNote = $('dlNote');
+async function downloadPdf(withBleed) {
+  [dlBleedBtn, dlTrimBtn].forEach(b => { b.disabled = true; });
+  dlNote.classList.remove('err');
+  dlNote.textContent = 'Preparing PDF…';
+  try {
+    const jsPDF = await loadJsPDF();
+    const { source, wMm, hMm, tag } = sheetFor(withBleed);
+    const jpeg = source.toDataURL('image/jpeg', PDF_JPEG_QUALITY);
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [wMm, hMm], compress: true });
+    doc.addImage(jpeg, 'JPEG', 0, 0, wMm, hMm, undefined, 'FAST');
+    doc.save(`${fileBase()}-${tag}.pdf`);
+    dlNote.textContent = `Saved ${withBleed ? '306 × 216 mm, with bleed' : 'A4 297 × 210 mm, no bleed'} · 300 dpi`;
+  } catch (err) {
+    console.error('PDF export failed', err);
+    dlNote.classList.add('err');
+    dlNote.textContent = 'PDF export failed: ' + (err && err.message ? err.message : err);
+  } finally {
+    [dlBleedBtn, dlTrimBtn].forEach(b => { b.disabled = false; });
+  }
+}
+dlBleedBtn.onclick = () => downloadPdf(true);
+dlTrimBtn.onclick = () => downloadPdf(false);
 </script>
 </body>
 </html>
