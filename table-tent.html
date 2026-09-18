@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>A4 Table Tent — 3D</title>
 <script type="importmap">
 {
@@ -38,10 +39,25 @@
 <meta name="ext-resource-dependency" content="uploads/IMG 5630 Background Remover.png" data-resource-id="ch9" />
 <meta name="ext-resource-dependency" content="uploads/IMG 5631 Background Remover.png" data-resource-id="ch10" />
 <style>
-html,body{margin:0;height:100%}
+html,body{margin:0;height:100%;background:#f0eee6}
+#app{display:flex;height:100vh;width:100vw;overflow:hidden}
+three-d-stage{flex:1 1 0;min-width:0;height:100%}
 three-d-stage:not(:defined){visibility:hidden}
+#flat{flex:0 0 46%;max-width:780px;min-width:320px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:10px;
+  padding:18px;background:#e6e1d3;border-left:1.5px solid rgba(20,20,19,0.15);color:#1a1915;font:13px/1.45 system-ui,sans-serif}
+#flatHead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+#flatHead strong{font-size:14px}
+#flatHead span{color:#6b6455;font-size:12px}
+#flatCanvas{width:100%;display:block;touch-action:none;background:#fff;border-radius:3px;box-shadow:0 6px 22px rgba(0,0,0,0.18);user-select:none}
+#flatNote{color:#6b6455;font-size:12px;margin:0}
+#flatNote b{color:#b3261e;font-weight:600}
+@media (max-width:900px){
+  #app{flex-direction:column}
+  three-d-stage{flex:1 1 0;height:auto;min-height:45vh}
+  #flat{flex:0 0 auto;max-width:none;min-width:0;border-left:0;border-top:1.5px solid rgba(20,20,19,0.15)}
+}
 #panel{position:fixed;top:16px;left:16px;z-index:10;display:flex;flex-direction:column;gap:10px;
-  padding:14px 16px;padding-top:20px;position:fixed;border:1.5px solid rgba(20,20,19,0.25);border-radius:12px;
+  padding:14px 16px;padding-top:20px;border:1.5px solid rgba(20,20,19,0.25);border-radius:12px;
   background:rgba(255,253,240,0.95);color:#1a1915;font:13px/1.4 system-ui,sans-serif;width:250px;
   box-shadow:0 4px 14px rgba(0,0,0,0.12);max-height:calc(100vh - 32px);overflow-y:auto;box-sizing:border-box}
 #panel.collapsed > :not(#collapseBtn){display:none}
@@ -49,6 +65,7 @@ three-d-stage:not(:defined){visibility:hidden}
 #collapseBtn{position:absolute;top:8px;right:8px;width:24px;height:24px;border:1.5px solid rgba(20,20,19,0.3);border-radius:6px;background:#fff;color:#1a1915;font:700 14px/1 system-ui,sans-serif;cursor:pointer;padding:0}
 #panel.collapsed #collapseBtn{position:static}
 #panel label{font-weight:600;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#6b6455}
+#panel label small{font-weight:400;text-transform:none;letter-spacing:0}
 .seg{display:flex;gap:6px}
 .seg button{flex:1;padding:8px 0;border:1.5px solid rgba(20,20,19,0.3);border-radius:8px;
   background:#fff;color:#1a1915;font:600 13px system-ui,sans-serif;cursor:pointer}
@@ -68,6 +85,14 @@ three-d-stage:not(:defined){visibility:hidden}
   text-transform:none;letter-spacing:0;color:#1a1915}
 #panel label.chk input{margin:0;accent-color:#b3261e}
 #panel label.chk small{color:#6b6455;font-weight:400;font-size:12px}
+.rng{display:flex;flex-direction:column;gap:2px;margin-top:6px}
+.rng span{display:flex;justify-content:space-between;align-items:baseline}
+#panel .rng label{font:500 12px system-ui,sans-serif;text-transform:none;letter-spacing:0;color:#1a1915}
+.rng output{font:12px system-ui,sans-serif;color:#6b6455}
+.rng input{width:100%;margin:0;accent-color:#1a1915}
+#resetLayout{margin-top:8px;width:100%;padding:7px 10px;border:1.5px solid rgba(20,20,19,0.3);border-radius:8px;
+  background:#fff;color:#1a1915;font:600 12px system-ui,sans-serif;cursor:pointer}
+#layoutHint{font:12px/1.4 system-ui,sans-serif;color:#6b6455;margin-top:4px}
 .dl{display:flex;flex-direction:column;gap:6px}
 .dl button{padding:8px 10px;border:1.5px solid #1a1915;border-radius:8px;background:#1a1915;color:#f5f0dc;
   font:600 13px/1.3 system-ui,sans-serif;cursor:pointer;width:100%;text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:1px}
@@ -94,7 +119,15 @@ three-d-stage:not(:defined){visibility:hidden}
 <template id="__bundler_thumbnail" data-bg-color="#f0eee6">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="#f0eee6"/><path d="M36 84 L60 40 L84 84 Z" fill="#8a6f4d"/><rect x="30" y="84" width="60" height="4" rx="2" fill="#c9c2b2"/></svg>
 </template>
-<three-d-stage name="a4-table-tent" autorotate></three-d-stage>
+<div id="app">
+  <three-d-stage name="a4-table-tent" autorotate></three-d-stage>
+  <aside id="flat">
+    <div id="flatHead"><strong>Flat sheet</strong><span id="flatSize"></span></div>
+    <canvas id="flatCanvas" aria-label="Flat view of the print sheet; drag the name or character to move it"></canvas>
+    <p id="flatNote"><b>Red</b> = bleed, trimmed off after printing. The top half prints upside down (it is the back of the tent).
+      Drag the name or the character to move it.</p>
+  </aside>
+</div>
 <div id="loader" role="status" aria-live="polite">
   <div class="spin"></div>
   <div id="loaderTitle">Setting up your table tent</div>
@@ -126,18 +159,32 @@ three-d-stage:not(:defined){visibility:hidden}
     <label for="nameInput">Name</label>
     <input id="nameInput" type="text" placeholder="Type a name…" maxlength="40" autocomplete="off" style="margin-top:5px">
   </div>
-  <label class="chk"><input id="bleedChk" type="checkbox"> Show bleed area <small>(outside A4)</small></label>
+  <div>
+    <label>Layout</label>
+    <div class="rng"><span><label for="textScale">Name size</label><output id="textScaleOut">100%</output></span>
+      <input id="textScale" type="range"></div>
+    <div class="rng" id="charScaleRow"><span><label for="charScale">Character size</label><output id="charScaleOut">100%</output></span>
+      <input id="charScale" type="range"></div>
+    <button id="resetLayout">Reset positions &amp; sizes</button>
+    <div id="layoutHint">Drag the name / character in the flat sheet on the right.</div>
+  </div>
+  <label class="chk"><input id="bleedChk" type="checkbox"> Show bleed on the 3D tent</label>
   <div>
     <label>Download PDF</label>
     <div class="dl" style="margin-top:5px">
-      <button id="dlBleedBtn"><span>With bleed</span><small>306 × 216 mm · for the print shop</small></button>
-      <button id="dlTrimBtn"><span>Without bleed</span><small>A4 · 297 × 210 mm · trimmed</small></button>
+      <button id="dlBleedBtn"><span>With bleed</span><small id="dlBleedSize"></small></button>
+      <button id="dlTrimBtn"><span>Without bleed</span><small id="dlTrimSize"></small></button>
     </div>
     <div id="dlNote" style="margin-top:6px">300 dpi · print-ready</div>
   </div>
 </div>
 <script src="./three-d-stage.js"></script>
 <script type="module">
+import { makeSheet, mmLabel } from './print-sheet.js';
+import { SCALE_RANGE, moveItem, scaleItem, resetTent, parseLayout, serializeLayout } from './tent-layout.js';
+import { composeTent } from './tent-artwork.js';
+import { createFlatView } from './flat-view.js';
+
 // Loading overlay — visible until the first frame is ready; becomes an
 // error panel if any step of the setup throws (instead of a blank page).
 const loaderEl = document.getElementById('loader');
@@ -154,7 +201,6 @@ addEventListener('unhandledrejection', e => showLoadError(e.reason));
 addEventListener('error', e => showLoadError(e.error || e.message));
 
 const R = window.__resources || {};
-const u = p => R[p] === undefined ? undefined : R[p];
 const BG = {
   F: R['bgF'] || 'uploads/grungeFBG-bleed.jpg',
   M: R['bgM'] || 'uploads/grungeMBG-bleed.jpg',
@@ -162,6 +208,7 @@ const BG = {
 };
 const FONT_URL = R['font'] || encodeURI('uploads/Rocket Raccoon Free.otf');
 const FONTB_URL = R['fontB'] || 'uploads/pixelmix_bold.ttf';
+const FONTB_REG_URL = R['fontBreg'] || 'uploads/pixelmix.ttf';
 const CHAR_FILES = [
   'Background Remover from Photoroom.png',
   'Background Remover Image from Photoroom.png',
@@ -177,29 +224,22 @@ const CHAR_FILES = [
 ];
 const CHAR_URLS = CHAR_FILES.map((f, i) => R['ch' + i] || encodeURI('uploads/' + f));
 
-// Print sheet with bleed: 306.07 x 216.41 mm at 300 dpi (3615 x 2556 px).
-// The finished tent is A4 landscape (297 x 210 mm = 3508 x 2481 px) centred
-// on that sheet; everything outside it is bleed. The fold runs through the
-// page centre.
-const DPI = 300, PX_PER_MM = DPI / 25.4;
-const IMG_W = 3615, IMG_H = 2556;
-const A4_W_MM = 297, A4_H_MM = 210;
-const A4_W = Math.round(A4_W_MM * PX_PER_MM), A4_H = Math.round(A4_H_MM * PX_PER_MM); // 3508 x 2481
-const OX = Math.round((IMG_W - A4_W) / 2), OY = Math.round((IMG_H - A4_H) / 2);      // centring offset
-const TRIM = { x: OX, y: OY, w: A4_W, h: A4_H };
-const SHEET_W_MM = IMG_W / PX_PER_MM, SHEET_H_MM = IMG_H / PX_PER_MM;                // 306.07 x 216.41
-// Layout boxes were measured on the A4 artwork — shift them by the centring offset.
-// Tent A name box (parchment card)
-const BOX_A = { x: 1400 + OX, y: 1410 + OY, w: 1880, h: 920 };
-const INK_A = '#241c14';
-// Tent B name box (white passport field, clear of the palm art)
-const BOX_B = { x: 1230 + OX, y: 1700 + OY, w: 1340, h: 360 };
-const INK_B = '#111111';
-// Tent B character slot: bottom-center anchor over the photo frame
-const CH = { cx: 690 + OX, bottom: 2560 + OY, maxW: 950, maxH: 1330 };
-// Bleed guide overlay (3D preview only — never drawn into the download)
+// The print sheet: A4 plus 3.175 mm (0.125 in) of bleed on every side,
+// 303.35 x 216.35 mm = 3584 x 2556 px at 300 dpi. The A4 trim
+// (3508 x 2480 px) is centred on it and the fold runs through the middle.
+// The background JPEGs are cropped to exactly this sheet.
+const sheet = makeSheet();
+const TRIM = sheet.trim;
+// Bleed guide on the 3D tent (preview only — never drawn into the download)
 const BLEED_TINT = 'rgba(220, 40, 40, 0.32)';
 const BLEED_LINE = 'rgba(220, 40, 40, 0.9)';
+const LS = { tent: 'tabletent-tent', bg: 'tabletent-bg', name: 'tabletent-name', char: 'tabletent-char',
+  bleed: 'tabletent-bleed', layout: 'tabletent-layout', panel: 'tabletent-panel' };
+
+const $ = id => document.getElementById(id);
+$('flatSize').textContent = `${mmLabel(sheet.wMm, sheet.hMm)} · A4 + ${sheet.bleedMm} mm bleed`;
+$('dlBleedSize').textContent = `${mmLabel(sheet.wMm, sheet.hMm)} · for the print shop`;
+$('dlTrimSize').textContent = `A4 · ${mmLabel(sheet.trimWMm, sheet.trimHMm)} · trimmed`;
 
 const stage = document.querySelector('three-d-stage');
 const { THREE } = await stage.ready;
@@ -216,7 +256,7 @@ try {
   boldOK = true;
 } catch (e) {
   // bold ttf rejected by the font sanitizer — fall back to regular + faux-bold stroke
-  const faceB = new FontFace('PixelMix', `url("${R['fontBreg'] || 'uploads/pixelmix.ttf'}")`);
+  const faceB = new FontFace('PixelMix', `url("${FONTB_REG_URL}")`);
   await faceB.load();
   document.fonts.add(faceB);
 }
@@ -224,113 +264,71 @@ try {
 function loadImg(src) {
   return new Promise((res, rej) => {
     const im = new Image();
-    im.onload = () => res(im); im.onerror = rej; im.src = src;
+    im.onload = () => res(im);
+    im.onerror = () => rej(new Error('could not load image ' + src));
+    im.src = src;
   });
 }
 setStatus('Loading artwork…');
 const [imgF, imgM, imgB] = await Promise.all([loadImg(BG.F), loadImg(BG.M), loadImg(BG.B)]);
-const imgs = { F: imgF, M: imgM };
+const backgrounds = { A: { F: imgF, M: imgM }, B: imgB };
 const charCache = {};
 async function getChar(i) {
   if (!charCache[i]) charCache[i] = await loadImg(CHAR_URLS[i]);
   return charCache[i];
 }
 
+// `canvas` is the print-clean composition; everything else samples it.
 const canvas = document.createElement('canvas');
-canvas.width = IMG_W; canvas.height = IMG_H;
+canvas.width = sheet.w; canvas.height = sheet.h;
 const ctx = canvas.getContext('2d');
 
-function wrapLines(text, size, maxW, font) {
-  ctx.font = `${size}px ${font}`;
-  const lines = [];
-  for (const seg of text.split('\n')) {
-    const words = seg.split(/\s+/).filter(Boolean);
-    if (!words.length) { lines.push(''); continue; }
-    let cur = '';
-    for (const w of words) {
-      const t = cur ? cur + ' ' + w : w;
-      if (ctx.measureText(t).width <= maxW) cur = t;
-      else { if (cur) lines.push(cur); cur = w; }
-    }
-    if (cur) lines.push(cur);
-  }
-  return lines;
-}
+// State — every change replaces the value; `layout` is an immutable tree.
+let tent = localStorage.getItem(LS.tent) === 'B' ? 'B' : 'A';
+let bgKey = localStorage.getItem(LS.bg) === 'M' ? 'M' : 'F';
+let name = localStorage.getItem(LS.name) ?? 'Lorraine';
+// -1 = custom upload; anything outside the preset range falls back to preset 0.
+const validCharSel = v => Number.isInteger(v) && v >= -1 && v < CHAR_URLS.length ? v : 0;
+let charSel = validCharSel(parseInt(localStorage.getItem(LS.char), 10));
+let customImg = null; // charSel === -1 → custom upload
+let layout = parseLayout(localStorage.getItem(LS.layout));
+let items = { text: null, char: null }; // where the movable pieces landed (sheet px)
+let showBleed = false;
 
-function fitText(text, box, font, maxSize, lh = 0.95) {
-  const MIN = 40;
-  for (let size = maxSize; size >= MIN; size -= 10) {
-    const lines = wrapLines(text, size, box.w, font);
-    const lineH = size * lh;
-    ctx.font = `${size}px ${font}`;
-    const tooWide = lines.some(l => ctx.measureText(l).width > box.w);
-    if (!tooWide && lines.length * lineH <= box.h) return { lines, size, lineH };
-  }
-  return { lines: wrapLines(text, MIN, box.w, font), size: MIN, lineH: MIN * lh };
+function persist(key, value) {
+  try { localStorage.setItem(key, value); }
+  catch (e) { console.warn('Could not save ' + key, e); }
 }
+const saveLayout = () => persist(LS.layout, serializeLayout(layout));
 
-function drawFitted(text, box, font, maxSize, draw, lh) {
-  const { lines, size, lineH } = fitText(text, box, font, maxSize, lh);
-  ctx.font = `${size}px ${font}`;
-  const m0 = ctx.measureText(lines[0]);
-  const mL = ctx.measureText(lines[lines.length - 1]);
-  const blockH = (lines.length - 1) * lineH + m0.actualBoundingBoxAscent + mL.actualBoundingBoxDescent;
-  const firstBase = box.y + (box.h - blockH) / 2 + m0.actualBoundingBoxAscent;
-  draw(lines, size, lineH, firstBase);
-}
+// Flat 2D sheet on the right: shows the clean composition with the bleed
+// marked in red, and turns drags into layout updates.
+const flatCanvas = $('flatCanvas');
+flatCanvas.style.aspectRatio = `${sheet.w} / ${sheet.h}`;
+const flat = createFlatView({
+  canvas: flatCanvas, sheet, source: canvas,
+  onDragMove: (key, dx, dy) => { layout = moveItem(layout, tent, key, dx, dy); scheduleRefresh(); },
+  onDragEnd: () => saveLayout(),
+});
 
-function composeA(bgKey, name) {
-  ctx.clearRect(0, 0, IMG_W, IMG_H);
-  ctx.drawImage(imgs[bgKey], 0, 0, IMG_W, IMG_H);
-  const text = (name || '').replace(/\\n/g, '\n').trim();
-  if (!text) return;
-  drawFitted(text, BOX_A, 'TentFont', 900, (lines, size, lineH, startY) => {
-    ctx.fillStyle = INK_A;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'alphabetic';
-    ctx.strokeStyle = '#f7f2dc';
-    ctx.lineWidth = size * 0.16;
-    ctx.lineJoin = 'round';
-    ctx.miterLimit = 2;
-    ctx.save();
-    ctx.shadowColor = 'rgba(20,15,8,0.45)';
-    ctx.shadowBlur = 18;
-    ctx.shadowOffsetX = 14;
-    ctx.shadowOffsetY = 18;
-    lines.forEach((l, i) => ctx.strokeText(l, BOX_A.x, startY + i * lineH));
-    ctx.restore();
-    lines.forEach((l, i) => ctx.fillText(l, BOX_A.x, startY + i * lineH));
-  });
-}
+// The 3D tent samples a separate "view" canvas: the clean composition
+// plus, when enabled, the red bleed guide.
+const viewCanvas = document.createElement('canvas');
+viewCanvas.width = sheet.w; viewCanvas.height = sheet.h;
+const vctx = viewCanvas.getContext('2d');
 
-function composeB(charImg, name) {
-  ctx.clearRect(0, 0, IMG_W, IMG_H);
-  ctx.drawImage(imgB, 0, 0, IMG_W, IMG_H);
-  if (charImg) {
-    const s = Math.min(CH.maxW / charImg.width, CH.maxH / charImg.height);
-    const w = charImg.width * s, h = charImg.height * s;
-    ctx.save();
-    ctx.shadowColor = 'rgba(30,20,10,0.38)';
-    ctx.shadowBlur = 34;
-    ctx.shadowOffsetX = 22;
-    ctx.shadowOffsetY = 28;
-    ctx.drawImage(charImg, CH.cx - w / 2, CH.bottom - h, w, h);
-    ctx.restore();
-  }
-  const text = (name || '').replace(/\\n/g, '\n').trim();
-  if (!text) return;
-  drawFitted(text, BOX_B, 'PixelMix', 340, (lines, size, lineH, startY) => {
-    ctx.fillStyle = INK_B;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'alphabetic';
-    if (!boldOK) {
-      ctx.strokeStyle = INK_B;
-      ctx.lineWidth = size * 0.09;
-      ctx.lineJoin = 'miter';
-      lines.forEach((l, i) => ctx.strokeText(l, BOX_B.x, startY + i * lineH));
-    }
-    lines.forEach((l, i) => ctx.fillText(l, BOX_B.x, startY + i * lineH));
-  }, 1.25);
+function paintView() {
+  vctx.clearRect(0, 0, sheet.w, sheet.h);
+  vctx.drawImage(canvas, 0, 0);
+  if (!showBleed) return;
+  vctx.fillStyle = BLEED_TINT;
+  vctx.fillRect(0, 0, sheet.w, TRIM.y);                                    // top
+  vctx.fillRect(0, TRIM.y + TRIM.h, sheet.w, sheet.h - TRIM.y - TRIM.h);   // bottom
+  vctx.fillRect(0, TRIM.y, TRIM.x, TRIM.h);                                // left
+  vctx.fillRect(TRIM.x + TRIM.w, TRIM.y, sheet.w - TRIM.x - TRIM.w, TRIM.h); // right
+  vctx.strokeStyle = BLEED_LINE;
+  vctx.lineWidth = 3;
+  vctx.strokeRect(TRIM.x + 1.5, TRIM.y + 1.5, TRIM.w - 3, TRIM.h - 3);     // cut line
 }
 
 const paper = new THREE.MeshPhysicalMaterial({ color: 0xf5f0dc, roughness: 0.92, sheen: 0.4, sheenRoughness: 0.9, sheenColor: 0xffffff });
@@ -339,27 +337,6 @@ const printFront = new THREE.MeshPhysicalMaterial({ roughness: 0.55, clearcoat: 
 printFront.name = 'print-front';
 const printBack = new THREE.MeshPhysicalMaterial({ roughness: 0.55, clearcoat: 0.25, clearcoatRoughness: 0.6 });
 printBack.name = 'print-back';
-
-// The 3D tent samples a separate "view" canvas: the clean composition plus,
-// when enabled, the red bleed guide. `canvas` itself stays print-clean.
-const viewCanvas = document.createElement('canvas');
-viewCanvas.width = IMG_W; viewCanvas.height = IMG_H;
-const vctx = viewCanvas.getContext('2d');
-let showBleed = false;
-
-function paintView() {
-  vctx.clearRect(0, 0, IMG_W, IMG_H);
-  vctx.drawImage(canvas, 0, 0);
-  if (!showBleed) return;
-  vctx.fillStyle = BLEED_TINT;
-  vctx.fillRect(0, 0, IMG_W, TRIM.y);                                   // top
-  vctx.fillRect(0, TRIM.y + TRIM.h, IMG_W, IMG_H - TRIM.y - TRIM.h);   // bottom
-  vctx.fillRect(0, TRIM.y, TRIM.x, TRIM.h);                              // left
-  vctx.fillRect(TRIM.x + TRIM.w, TRIM.y, IMG_W - TRIM.x - TRIM.w, TRIM.h); // right
-  vctx.strokeStyle = BLEED_LINE;
-  vctx.lineWidth = 3;
-  vctx.strokeRect(TRIM.x + 1.5, TRIM.y + 1.5, TRIM.w - 3, TRIM.h - 3);  // cut line
-}
 
 const srcTex = new THREE.CanvasTexture(viewCanvas);
 srcTex.colorSpace = THREE.SRGBColorSpace;
@@ -373,46 +350,65 @@ printBack.map = texBack;
 // cut tent looks like). Bleed on: the whole sheet, so the tinted margins are
 // visible around the cut line. Texture v=0 is the bottom row of the image.
 function applyTextureWindow() {
-  const win = showBleed ? { x: 0, y: 0, w: IMG_W, h: IMG_H } : TRIM;
-  const u0 = win.x / IMG_W, uw = win.w / IMG_W;
-  const vBottom = (IMG_H - win.y - win.h) / IMG_H, vh = win.h / 2 / IMG_H;
-  texFront.repeat.set(uw, vh); texFront.offset.set(u0, vBottom);      // lower half
+  const win = showBleed ? { x: 0, y: 0, w: sheet.w, h: sheet.h } : TRIM;
+  const u0 = win.x / sheet.w, uw = win.w / sheet.w;
+  const vBottom = (sheet.h - win.y - win.h) / sheet.h, vh = win.h / 2 / sheet.h;
+  texFront.repeat.set(uw, vh); texFront.offset.set(u0, vBottom);              // lower half
   texBack.repeat.set(-uw, -vh); texBack.offset.set(u0 + uw, vBottom + 2 * vh); // upper half, rotated 180°
 }
 applyTextureWindow();
 
-const LS_TENT = 'tabletent-tent', LS_BG = 'tabletent-bg', LS_NAME = 'tabletent-name', LS_CHAR = 'tabletent-char';
-let tent = localStorage.getItem(LS_TENT) === 'B' ? 'B' : 'A';
-let bgKey = localStorage.getItem(LS_BG) === 'M' ? 'M' : 'F';
-let name = localStorage.getItem(LS_NAME) ?? 'Lorraine';
-let charSel = parseInt(localStorage.getItem(LS_CHAR), 10); if (isNaN(charSel)) charSel = 0;
-let customImg = null; // -1 = custom
-
+async function currentCharImg() {
+  if (tent !== 'B') return null;
+  return charSel === -1 ? customImg : getChar(charSel);
+}
+// Loading a character image can take a while the first time, so a slower
+// older refresh could finish after a newer one. Each call takes a ticket and
+// only the latest one is allowed to draw.
+let refreshTicket = 0;
 async function refresh() {
-  if (tent === 'A') {
-    composeA(bgKey, name);
-  } else {
-    const img = charSel === -1 ? customImg : await getChar(charSel);
-    composeB(img, name);
-  }
+  const ticket = ++refreshTicket;
+  const charImg = await currentCharImg();
+  if (ticket !== refreshTicket) return; // superseded while the image loaded
+  const background = tent === 'A' ? backgrounds.A[bgKey] : backgrounds.B;
+  items = composeTent({ ctx, sheet, tent, background, name, charImg, layout, fauxBold: !boldOK });
   paintView();
   texFront.needsUpdate = true;
   texBack.needsUpdate = true;
+  flat.setItems(items);
+}
+// After boot a failed redraw (e.g. a character PNG that will not load) is
+// reported in the panel instead of through the fatal loading overlay.
+function refreshSafely() {
+  return refresh().catch(err => {
+    console.error('Could not redraw the tent', err);
+    const note = $('dlNote');
+    note.classList.add('err');
+    note.textContent = 'Could not redraw the tent: ' + (err && err.message ? err.message : err);
+  });
+}
+// Drags and slider moves arrive faster than a full re-composition; coalesce
+// them to one refresh per frame.
+let refreshQueued = false;
+function scheduleRefresh() {
+  if (refreshQueued) return;
+  refreshQueued = true;
+  requestAnimationFrame(() => { refreshQueued = false; refreshSafely(); });
 }
 setStatus('Building the tent…');
 await refresh();
 
 // Tent geometry in metres: the trimmed A4 sheet folded across the short
 // side, so each face is 297 x 105 mm.
-const W = A4_W_MM / 1000, PANEL = A4_H_MM / 2 / 1000, HALF_BASE = 0.045, T = 0.0006;
+const W = sheet.trimWMm / 1000, PANEL = sheet.trimHMm / 2 / 1000, HALF_BASE = 0.045, T = 0.0006;
 const tilt = Math.asin(HALF_BASE / PANEL);
 const cy = (PANEL / 2) * Math.cos(tilt);
 const cz = HALF_BASE - (PANEL / 2) * Math.sin(tilt);
 
-function panel(printMat, name) {
+function panel(printMat, meshName) {
   const geo = new THREE.BoxGeometry(W, PANEL, T);
   const mesh = new THREE.Mesh(geo, [paper, paper, paper, paper, printMat, paper]);
-  mesh.name = name;
+  mesh.name = meshName;
   mesh.castShadow = true;
   return mesh;
 }
@@ -455,14 +451,14 @@ stage._controls.target.set(0, 0.045, 0);
 stage._controls.update();
 // First frame is ready — fade the overlay out (kept in the DOM so an error
 // later in setup can still surface through it).
-requestAnimationFrame(() => loaderEl.classList.add('done'));
+requestAnimationFrame(() => { loaderEl.classList.add('done'); flat.resize(); });
 
 // Controls
-const $ = id => document.getElementById(id);
 const btnTentA = $('btnTentA'), btnTentB = $('btnTentB');
 const btnF = $('btnF'), btnM = $('btnM');
 const nameInput = $('nameInput');
 const charGrid = $('charGrid'), customBtn = $('customBtn'), customFile = $('customFile');
+const textScale = $('textScale'), charScale = $('charScale');
 
 CHAR_URLS.forEach((url, i) => {
   const b = document.createElement('button');
@@ -470,30 +466,51 @@ CHAR_URLS.forEach((url, i) => {
   const im = document.createElement('img');
   im.src = url; im.loading = 'lazy';
   b.appendChild(im);
-  b.onclick = () => { charSel = i; localStorage.setItem(LS_CHAR, i); syncUI(); refresh(); };
+  b.onclick = () => { charSel = i; persist(LS.char, i); syncUI(); refreshSafely(); };
   charGrid.appendChild(b);
 });
 
+const pct = scale => Math.round(scale * 100);
+function syncScaleSlider(input, key) {
+  const item = layout[tent][key];
+  input.disabled = !item;
+  input.value = item ? pct(item.scale) : 100;
+  $(input.id + 'Out').textContent = input.value + '%';
+}
 function syncUI() {
   btnTentA.classList.toggle('on', tent === 'A');
   btnTentB.classList.toggle('on', tent === 'B');
   $('secA').style.display = tent === 'A' ? '' : 'none';
   $('secB').style.display = tent === 'B' ? '' : 'none';
+  $('charScaleRow').style.display = tent === 'B' ? '' : 'none';
   btnF.classList.toggle('on', bgKey === 'F');
   btnM.classList.toggle('on', bgKey === 'M');
   [...charGrid.children].forEach((b, i) => b.classList.toggle('on', tent === 'B' && charSel === i));
   customBtn.classList.toggle('on', charSel === -1);
+  syncScaleSlider(textScale, 'text');
+  syncScaleSlider(charScale, 'char');
 }
 
+btnTentA.onclick = () => { tent = 'A'; persist(LS.tent, 'A'); syncUI(); refreshSafely(); };
+btnTentB.onclick = () => { tent = 'B'; persist(LS.tent, 'B'); syncUI(); refreshSafely(); };
+btnF.onclick = () => { bgKey = 'F'; persist(LS.bg, 'F'); syncUI(); refreshSafely(); };
+btnM.onclick = () => { bgKey = 'M'; persist(LS.bg, 'M'); syncUI(); refreshSafely(); };
 
-
-btnTentA.onclick = () => { tent = 'A'; localStorage.setItem(LS_TENT, 'A'); syncUI(); refresh(); };
-btnTentB.onclick = () => { tent = 'B'; localStorage.setItem(LS_TENT, 'B'); syncUI(); refresh(); };
-btnF.onclick = () => { bgKey = 'F'; localStorage.setItem(LS_BG, 'F'); syncUI(); refresh(); };
-btnM.onclick = () => { bgKey = 'M'; localStorage.setItem(LS_BG, 'M'); syncUI(); refresh(); };
+// Layout: size sliders + reset. Positions come from dragging in the flat view.
+function bindScaleSlider(input, key) {
+  input.min = pct(SCALE_RANGE.min); input.max = pct(SCALE_RANGE.max); input.step = 5;
+  input.addEventListener('input', () => {
+    layout = scaleItem(layout, tent, key, input.valueAsNumber / 100);
+    $(input.id + 'Out').textContent = input.value + '%';
+    saveLayout();
+    scheduleRefresh();
+  });
+}
+bindScaleSlider(textScale, 'text');
+bindScaleSlider(charScale, 'char');
+$('resetLayout').onclick = () => { layout = resetTent(layout, tent); saveLayout(); syncUI(); refreshSafely(); };
 
 // Bleed guide toggle — affects the 3D preview only; the download stays clean.
-const LS_BLEED = 'tabletent-bleed';
 const bleedChk = $('bleedChk');
 function setBleed(on) {
   showBleed = on;
@@ -505,17 +522,21 @@ function setBleed(on) {
 }
 bleedChk.addEventListener('change', () => {
   setBleed(bleedChk.checked);
-  localStorage.setItem(LS_BLEED, bleedChk.checked ? '1' : '0');
+  persist(LS.bleed, bleedChk.checked ? '1' : '0');
 });
-if (localStorage.getItem(LS_BLEED) === '1') setBleed(true);
+if (localStorage.getItem(LS.bleed) === '1') setBleed(true);
 
 function useCustomFile(file) {
   if (!file || !file.type.startsWith('image/')) return;
   const url = URL.createObjectURL(file);
   loadImg(url).then(im => {
     customImg = im; charSel = -1;
-    localStorage.setItem(LS_CHAR, '-1');
-    syncUI(); refresh();
+    persist(LS.char, '-1');
+    syncUI(); refreshSafely();
+  }).catch(err => {
+    console.error(err);
+    $('dlNote').classList.add('err');
+    $('dlNote').textContent = 'That file could not be read as an image.';
   });
 }
 customBtn.onclick = () => customFile.click();
@@ -539,18 +560,18 @@ nameInput.addEventListener('keydown', e => {
 });
 nameInput.addEventListener('input', () => {
   name = nameInput.value;
-  localStorage.setItem(LS_NAME, name);
-  refresh();
+  persist(LS.name, name);
+  refreshSafely();
 });
 syncUI();
 
 const panelEl = $('panel'), collapseBtn = $('collapseBtn');
-if (localStorage.getItem('tabletent-panel') === 'closed') { panelEl.classList.add('collapsed'); collapseBtn.textContent = '☰'; collapseBtn.title = 'Expand'; }
+if (localStorage.getItem(LS.panel) === 'closed') { panelEl.classList.add('collapsed'); collapseBtn.textContent = '☰'; collapseBtn.title = 'Expand'; }
 collapseBtn.onclick = () => {
   const closed = panelEl.classList.toggle('collapsed');
   collapseBtn.textContent = closed ? '☰' : '−';
   collapseBtn.title = closed ? 'Expand' : 'Collapse';
-  localStorage.setItem('tabletent-panel', closed ? 'closed' : 'open');
+  persist(LS.panel, closed ? 'closed' : 'open');
 };
 
 // PDF export. jsPDF is fetched on first use so it never delays page load;
@@ -577,11 +598,11 @@ function loadJsPDF() {
 
 // The sheet to print: the full composition (with bleed) or the A4 trim crop.
 function sheetFor(withBleed) {
-  if (withBleed) return { source: canvas, wMm: SHEET_W_MM, hMm: SHEET_H_MM, tag: 'bleed-306x216mm' };
+  if (withBleed) return { source: canvas, wMm: sheet.wMm, hMm: sheet.hMm, tag: 'bleed-303x216mm' };
   const c = document.createElement('canvas');
   c.width = TRIM.w; c.height = TRIM.h;
   c.getContext('2d').drawImage(canvas, TRIM.x, TRIM.y, TRIM.w, TRIM.h, 0, 0, TRIM.w, TRIM.h);
-  return { source: c, wMm: A4_W_MM, hMm: A4_H_MM, tag: 'a4-297x210mm' };
+  return { source: c, wMm: sheet.trimWMm, hMm: sheet.trimHMm, tag: 'a4-297x210mm' };
 }
 
 function fileBase() {
@@ -602,7 +623,7 @@ async function downloadPdf(withBleed) {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [wMm, hMm], compress: true });
     doc.addImage(jpeg, 'JPEG', 0, 0, wMm, hMm, undefined, 'FAST');
     doc.save(`${fileBase()}-${tag}.pdf`);
-    dlNote.textContent = `Saved ${withBleed ? '306 × 216 mm, with bleed' : 'A4 297 × 210 mm, no bleed'} · 300 dpi`;
+    dlNote.textContent = `Saved ${mmLabel(wMm, hMm)}, ${withBleed ? 'with bleed' : 'A4, no bleed'} · 300 dpi`;
   } catch (err) {
     console.error('PDF export failed', err);
     dlNote.classList.add('err');

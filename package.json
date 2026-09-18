@@ -1,0 +1,10 @@
+{
+  "name": "nametent-viewer",
+  "private": true,
+  "type": "module",
+  "description": "A4 table-tent (name tent) generator: 3D preview, flat sheet with drag layout, print-ready PDF export",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "serve": "python3 -m http.server 8000"
+  }
+}
