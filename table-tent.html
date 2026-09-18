@@ -43,11 +43,18 @@ html,body{margin:0;height:100%;background:#f0eee6}
 #app{display:flex;height:100vh;width:100vw;overflow:hidden}
 three-d-stage{flex:1 1 0;min-width:0;height:100%}
 three-d-stage:not(:defined){visibility:hidden}
-#flat{flex:0 0 46%;max-width:780px;min-width:320px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:10px;
-  padding:18px;background:#e6e1d3;border-left:1.5px solid rgba(20,20,19,0.15);color:#1a1915;font:13px/1.45 system-ui,sans-serif}
-#flatHead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+#flat{flex:0 0 34%;max-width:600px;min-width:280px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:10px;
+  padding:16px;background:#e6e1d3;border-left:1.5px solid rgba(20,20,19,0.15);color:#1a1915;font:13px/1.45 system-ui,sans-serif}
+#flatHead{display:flex;justify-content:space-between;align-items:center;gap:8px}
 #flatHead strong{font-size:14px}
-#flatHead span{color:#6b6455;font-size:12px}
+#flatHead span{color:#6b6455;font-size:12px;flex:1 1 auto}
+#flatToggle{flex:0 0 auto;padding:4px 9px;border:1.5px solid rgba(20,20,19,0.3);border-radius:6px;background:#fff;color:#1a1915;
+  font:600 12px/1 system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+#flat.collapsed{flex:0 0 auto;min-width:0;max-width:none;width:auto;padding:12px 8px;justify-content:flex-start}
+#flat.collapsed > :not(#flatHead){display:none}
+#flat.collapsed #flatHead{flex-direction:column;align-items:center}
+#flat.collapsed #flatHead strong,#flat.collapsed #flatHead span{display:none}
+#flat.collapsed #flatToggle{writing-mode:vertical-rl;padding:9px 4px}
 #flatCanvas{width:100%;display:block;touch-action:none;background:#fff;border-radius:3px;box-shadow:0 6px 22px rgba(0,0,0,0.18);user-select:none}
 #flatNote{color:#6b6455;font-size:12px;margin:0}
 #flatNote b{color:#b3261e;font-weight:600}
@@ -55,6 +62,9 @@ three-d-stage:not(:defined){visibility:hidden}
   #app{flex-direction:column}
   three-d-stage{flex:1 1 0;height:auto;min-height:45vh}
   #flat{flex:0 0 auto;max-width:none;min-width:0;border-left:0;border-top:1.5px solid rgba(20,20,19,0.15)}
+  #flat.collapsed{padding:8px 16px}
+  #flat.collapsed #flatHead{flex-direction:row}
+  #flat.collapsed #flatToggle{writing-mode:horizontal-tb;padding:4px 9px}
 }
 #panel{position:fixed;top:16px;left:16px;z-index:10;display:flex;flex-direction:column;gap:10px;
   padding:14px 16px;padding-top:20px;border:1.5px solid rgba(20,20,19,0.25);border-radius:12px;
@@ -122,7 +132,8 @@ three-d-stage:not(:defined){visibility:hidden}
 <div id="app">
   <three-d-stage name="a4-table-tent" autorotate></three-d-stage>
   <aside id="flat">
-    <div id="flatHead"><strong>Flat sheet</strong><span id="flatSize"></span></div>
+    <div id="flatHead"><strong>Flat sheet</strong><span id="flatSize"></span>
+      <button id="flatToggle" type="button" aria-controls="flatCanvas" aria-expanded="true">Hide</button></div>
     <canvas id="flatCanvas" aria-label="Flat view of the print sheet; drag the name or character to move it"></canvas>
     <p id="flatNote"><b>Red</b> = bleed, trimmed off after printing. The top half prints upside down (it is the back of the tent).
       Drag the name or the character to move it.</p>
@@ -234,7 +245,7 @@ const TRIM = sheet.trim;
 const BLEED_TINT = 'rgba(220, 40, 40, 0.32)';
 const BLEED_LINE = 'rgba(220, 40, 40, 0.9)';
 const LS = { tent: 'tabletent-tent', bg: 'tabletent-bg', name: 'tabletent-name', char: 'tabletent-char',
-  bleed: 'tabletent-bleed', layout: 'tabletent-layout', panel: 'tabletent-panel' };
+  bleed: 'tabletent-bleed', layout: 'tabletent-layout', panel: 'tabletent-panel', flat: 'tabletent-flat' };
 
 const $ = id => document.getElementById(id);
 $('flatSize').textContent = `${mmLabel(sheet.wMm, sheet.hMm)} · A4 + ${sheet.bleedMm} mm bleed`;
@@ -564,6 +575,21 @@ nameInput.addEventListener('input', () => {
   refreshSafely();
 });
 syncUI();
+
+// Flat sheet column: collapsible to a thin strip so the 3D view gets the room.
+const flatEl = $('flat'), flatToggle = $('flatToggle');
+function setFlatCollapsed(closed) {
+  flatEl.classList.toggle('collapsed', closed);
+  flatToggle.textContent = closed ? 'Show flat sheet' : 'Hide';
+  flatToggle.setAttribute('aria-expanded', String(!closed));
+  if (!closed) requestAnimationFrame(() => flat.resize());
+}
+flatToggle.onclick = () => {
+  const closed = !flatEl.classList.contains('collapsed');
+  setFlatCollapsed(closed);
+  persist(LS.flat, closed ? 'closed' : 'open');
+};
+if (localStorage.getItem(LS.flat) === 'closed') setFlatCollapsed(true);
 
 const panelEl = $('panel'), collapseBtn = $('collapseBtn');
 if (localStorage.getItem(LS.panel) === 'closed') { panelEl.classList.add('collapsed'); collapseBtn.textContent = '☰'; collapseBtn.title = 'Expand'; }
