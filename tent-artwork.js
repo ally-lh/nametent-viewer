@@ -63,7 +63,8 @@ function measureBlock(ctx, lines, size, lineH, font) {
   return { width, ascent, height: (lines.length - 1) * lineH + ascent + descent };
 }
 
-/** Draws the name centred on the item's (x, y); returns its bounds in sheet px. */
+/** Draws the name in the box centred on the item's (x, y), each line centred
+ *  or flush left per item.align; returns its bounds in sheet px. */
 export function drawName(ctx, sheet, item, text, style, opts = {}) {
   if (!text) return null;
   const it = effectiveItem(item);
@@ -71,11 +72,13 @@ export function drawName(ctx, sheet, item, text, style, opts = {}) {
   const { lines, size, lineH } = fitText(ctx, text, it, style.font, it.size, style.lineHeight);
   const m = measureBlock(ctx, lines, size, lineH, style.font);
   const firstBase = c.y - m.height / 2 + m.ascent;
-  const each = fn => lines.forEach((l, i) => fn(l, c.x, firstBase + i * lineH));
+  const left = it.align === 'left';
+  const anchorX = left ? c.x - it.w / 2 : c.x;
+  const each = fn => lines.forEach((l, i) => fn(l, anchorX, firstBase + i * lineH));
 
   ctx.save();
   ctx.font = `${size}px ${style.font}`;
-  ctx.textAlign = 'center';
+  ctx.textAlign = left ? 'left' : 'center';
   ctx.textBaseline = 'alphabetic';
   if (style.outline) {
     ctx.strokeStyle = style.outline;
@@ -98,7 +101,8 @@ export function drawName(ctx, sheet, item, text, style, opts = {}) {
   ctx.restore();
 
   const pad = size * HIT_PAD;
-  return { x: c.x - m.width / 2 - pad, y: firstBase - m.ascent - pad, w: m.width + 2 * pad, h: m.height + 2 * pad };
+  const blockLeft = left ? anchorX : c.x - m.width / 2;
+  return { x: blockLeft - pad, y: firstBase - m.ascent - pad, w: m.width + 2 * pad, h: m.height + 2 * pad };
 }
 
 /** Draws the cut-out with its bottom centre on the item's (x, y); returns its bounds. */

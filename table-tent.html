@@ -172,6 +172,10 @@ three-d-stage:not(:defined){visibility:hidden}
   </div>
   <div>
     <label>Layout</label>
+    <div id="alignToggle" class="seg" style="margin-top:6px">
+      <button id="btnAlignLeft" title="Start the name at the left of its box">Left</button>
+      <button id="btnAlignCenter" title="Centre each line of the name">Centre</button>
+    </div>
     <div class="rng"><span><label for="textScale">Name size</label><output id="textScaleOut">100%</output></span>
       <input id="textScale" type="range"></div>
     <div class="rng" id="charScaleRow"><span><label for="charScale">Character size</label><output id="charScaleOut">100%</output></span>
@@ -192,7 +196,7 @@ three-d-stage:not(:defined){visibility:hidden}
 <script src="./three-d-stage.js"></script>
 <script type="module">
 import { makeSheet, mmLabel } from './print-sheet.js';
-import { SCALE_RANGE, moveItem, scaleItem, resetTent, parseLayout, serializeLayout } from './tent-layout.js';
+import { SCALE_RANGE, moveItem, scaleItem, alignItem, resetTent, parseLayout, serializeLayout } from './tent-layout.js';
 import { composeTent } from './tent-artwork.js';
 import { createFlatView } from './flat-view.js';
 
@@ -470,6 +474,7 @@ const btnF = $('btnF'), btnM = $('btnM');
 const nameInput = $('nameInput');
 const charGrid = $('charGrid'), customBtn = $('customBtn'), customFile = $('customFile');
 const textScale = $('textScale'), charScale = $('charScale');
+const btnAlignLeft = $('btnAlignLeft'), btnAlignCenter = $('btnAlignCenter');
 
 CHAR_URLS.forEach((url, i) => {
   const b = document.createElement('button');
@@ -500,6 +505,9 @@ function syncUI() {
   customBtn.classList.toggle('on', charSel === -1);
   syncScaleSlider(textScale, 'text');
   syncScaleSlider(charScale, 'char');
+  const align = layout[tent].text.align;
+  btnAlignLeft.classList.toggle('on', align === 'left');
+  btnAlignCenter.classList.toggle('on', align !== 'left');
 }
 
 btnTentA.onclick = () => { tent = 'A'; persist(LS.tent, 'A'); syncUI(); refreshSafely(); };
@@ -519,6 +527,12 @@ function bindScaleSlider(input, key) {
 }
 bindScaleSlider(textScale, 'text');
 bindScaleSlider(charScale, 'char');
+function setAlign(align) {
+  layout = alignItem(layout, tent, 'text', align);
+  saveLayout(); syncUI(); scheduleRefresh();
+}
+btnAlignLeft.onclick = () => setAlign('left');
+btnAlignCenter.onclick = () => setAlign('center');
 $('resetLayout').onclick = () => { layout = resetTent(layout, tent); saveLayout(); syncUI(); refreshSafely(); };
 
 // Bleed guide toggle — affects the 3D preview only; the download stays clean.

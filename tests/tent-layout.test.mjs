@@ -86,3 +86,19 @@ test('parseLayout output is deeply frozen', () => {
   assert.ok(Object.isFrozen(l) && Object.isFrozen(l.A) && Object.isFrozen(l.A.text) && Object.isFrozen(l.B.char));
   assert.throws(() => { 'use strict'; l.A.text.x = 0; });
 });
+
+test('alignItem only accepts known alignments on text items', async () => {
+  const { alignItem, TEXT_ALIGNS } = await import('../tent-layout.js');
+  assert.deepEqual(TEXT_ALIGNS, ['left', 'center']);
+  assert.equal(DEFAULT_LAYOUT.A.text.align, 'center');
+  const l = alignItem(DEFAULT_LAYOUT, 'A', 'text', 'left');
+  assert.equal(l.A.text.align, 'left');
+  assert.equal(DEFAULT_LAYOUT.A.text.align, 'center');
+  assert.equal(alignItem(DEFAULT_LAYOUT, 'A', 'text', 'justify'), DEFAULT_LAYOUT);
+  assert.equal(alignItem(DEFAULT_LAYOUT, 'B', 'char', 'left'), DEFAULT_LAYOUT);
+  const back = parseLayout(serializeLayout(l));
+  assert.equal(back.A.text.align, 'left');
+  assert.equal(back.B.text.align, 'center');
+  assert.ok(!('align' in JSON.parse(serializeLayout(l)).B.char));
+  assert.equal(parseLayout('{"A":{"text":{"x":1,"y":2,"align":"weird"}}}').A.text.align, 'center');
+});
