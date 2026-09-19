@@ -107,7 +107,7 @@ test('tentToStored / withStoredTent move one tent in and out of storage form', a
   const { alignItem, tentToStored, withStoredTent } = await import('../tent-layout.js');
   const l = alignItem(scaleItem(moveItem(DEFAULT_LAYOUT, 'B', 'char', -30, 12), 'B', 'text', 1.25), 'B', 'text', 'left');
   const stored = tentToStored(l, 'B');
-  assert.deepEqual(stored, { text: { x: 1971, y: 1864, scale: 1.25, align: 'left' }, char: { x: 684, y: 2572, scale: 1 } });
+  assert.deepEqual(stored, { text: { x: 1971, y: 1860, scale: 1.25, align: 'left' }, char: { x: 684, y: 2572, scale: 1 } });
   assert.ok(Object.isFrozen(stored) && Object.isFrozen(stored.text));
   const other = moveItem(DEFAULT_LAYOUT, 'A', 'text', 5, 5);
   const merged = withStoredTent(other, 'B', stored);
@@ -131,4 +131,11 @@ test('centreItem centres on the A4 front face, ignoring the bleed', async () => 
   assert.equal(centreItem(DEFAULT_LAYOUT, 'B', 'char').B.char.y, 1860 + DEFAULT_LAYOUT.B.char.maxH / 2);
   assert.equal(centreItem(DEFAULT_LAYOUT, 'A', 'char'), DEFAULT_LAYOUT);
   assert.equal(DEFAULT_LAYOUT.A.text.x, 2272);
+});
+
+test('default name positions sit at the vertical centre of the A4 front face', async () => {
+  const { FRONT_CENTRE } = await import('../tent-layout.js');
+  assert.equal(DEFAULT_LAYOUT.A.text.y, FRONT_CENTRE.y);
+  assert.equal(DEFAULT_LAYOUT.B.text.y, FRONT_CENTRE.y);
+  assert.equal(FRONT_CENTRE.y, (2480 / 2 + 2480) / 2); // halfway between the fold and the A4 bottom
 });

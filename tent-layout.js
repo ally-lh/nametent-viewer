@@ -3,7 +3,9 @@
 // object; nothing is mutated.
 //
 // Positions are A4 px (300 dpi, relative to the trim's top-left), so they
-// are centred on the finished A4 tent rather than on the bleed sheet.
+// are centred on the finished A4 tent rather than on the bleed sheet. The
+// default name position is the vertical centre of the front face (halfway
+// between the fold and the bottom of the A4), never of the bleed sheet.
 //   text: x,y = centre of the box the name is fitted into; w,h = that box;
 //         size = largest font size tried before shrinking to fit.
 //   char: x,y = bottom-centre anchor; maxW,maxH = fit box for the cut-out.
@@ -14,10 +16,10 @@ import { A4_MM, mmToPx } from './print-sheet.js';
 
 export const DEFAULT_LAYOUT = Object.freeze({
   A: Object.freeze({
-    text: Object.freeze({ x: 2272, y: 2000, w: 1880, h: 920, size: 900, scale: 1, align: 'center' }),
+    text: Object.freeze({ x: 2272, y: 1860, w: 1880, h: 920, size: 900, scale: 1, align: 'center' }),
   }),
   B: Object.freeze({
-    text: Object.freeze({ x: 1971, y: 1864, w: 1470, h: 400, size: 340, scale: 1, align: 'center' }),
+    text: Object.freeze({ x: 1971, y: 1860, w: 1470, h: 400, size: 340, scale: 1, align: 'center' }),
     char: Object.freeze({ x: 714, y: 2560, maxW: 950, maxH: 1330, scale: 1 }),
   }),
 });

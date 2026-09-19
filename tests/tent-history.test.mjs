@@ -22,7 +22,7 @@ test('makeEntry snapshots only the fields that matter for the chosen tent', () =
   assert.equal(e.bgKey, undefined);          // tent B has no girl/guy background
   assert.equal(e.customImageId, undefined);  // preset character, no upload
   assert.deepEqual(Object.keys(e.layout).sort(), ['char', 'text']);
-  assert.deepEqual(e.layout.text, { x: 1971, y: 1864, scale: 1, align: 'center' });
+  assert.deepEqual(e.layout.text, { x: 1971, y: 1860, scale: 1, align: 'center' });
   assert.deepEqual(e.layout.char, { x: 714, y: 2560, scale: 1 });
   assert.ok(Object.isFrozen(e) && Object.isFrozen(e.layout) && Object.isFrozen(e.layout.text));
   const a = mk({ tent: 'A', bgKey: 'M' });
@@ -96,7 +96,7 @@ test('serialize / parse round-trips and tolerates garbage', () => {
   const [newest, oldest] = list; // 'b' then 'a'
   const mixed = parseHistory(JSON.stringify([newest, { id: 'junk' }, 7, { ...oldest, tent: 'Q' }, { ...oldest, id: 'c', layout: 'bad' }]));
   assert.deepEqual(mixed.map(e => e.id), ['b', 'c']); // a bad layout falls back to defaults, a bad tent is dropped
-  assert.deepEqual(mixed[1].layout.text, { x: 2272, y: 2000, scale: 1, align: 'center' });
+  assert.deepEqual(mixed[1].layout.text, { x: 2272, y: 1860, scale: 1, align: 'center' });
   assert.equal(parseHistory(JSON.stringify([{ ...list[0], id: 'dup' }, { ...list[0], id: 'dup' }])).length, 1);
 });
 
