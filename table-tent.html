@@ -10,14 +10,16 @@
     "three": "https://unpkg.com/three@0.184.0/build/three.module.js",
     "three/addons/controls/OrbitControls.js": "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js",
     "three/addons/exporters/OBJExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/OBJExporter.js",
-    "three/addons/exporters/GLTFExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js"
+    "three/addons/exporters/GLTFExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js",
+    "pdfjs-dist": "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs"
   },
   "integrity": {
     "https://unpkg.com/three@0.184.0/build/three.module.js": "sha384-8FCZ1eVO6it4+pbec2aDtnTrwjWXZLJRC+MAGCIPDgsYnUrl/E0A2YlF8ioMKI/J",
     "https://unpkg.com/three@0.184.0/build/three.core.js": "sha384-dw2ooPewaEIrAgl6oFDBmmBWCE9oW9LxRGcfwZ0hLvEprzo202wXl7vCYHRlSnOT",
     "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js": "sha384-4rziNxOBZKQ69i+w+f89KJ55TCYquwchVbByQwmaOeIOXdOU2PLDn3kOfXHwIJC9",
     "https://unpkg.com/three@0.184.0/examples/jsm/exporters/OBJExporter.js": "sha384-nbwtoZENJD3Vq+ACK0CuGQdPMuDWHkamC2KJD70EV5nfg6jQjfppKOea07YJN+N3",
-    "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js": "sha384-VofkvpG6HERhFCYbsUOHeNXBCqID2nfqkQqnVzE1jc/oPcz+qJ13ADdXH08hE+cQ"
+    "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js": "sha384-VofkvpG6HERhFCYbsUOHeNXBCqID2nfqkQqnVzE1jc/oPcz+qJ13ADdXH08hE+cQ",
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs": "sha384-+0ti2moQlmLN7WZHE2RHIf5lV8hHxhxEalN0il3YZceG26fUPyOkR0hp9daxk1i7"
   }
 }
 </script>
@@ -168,9 +170,9 @@ three-d-stage:not(:defined){visibility:hidden}
   </div>
   <div id="secPreview" style="display:none">
     <label>Sheet image</label>
-    <button id="previewBtn">Drop / choose an image…</button>
-    <input id="previewFile" type="file" accept="image/*" hidden>
-    <div id="previewInfo">Use an export of the whole sheet, bleed included. Any pixel size works: the bleed is marked 3.175 mm in from each edge.</div>
+    <button id="previewBtn">Drop / choose a PDF or image…</button>
+    <input id="previewFile" type="file" accept="application/pdf,.pdf,image/*" hidden>
+    <div id="previewInfo">Use a PDF or PNG/JPEG export of the whole sheet, bleed included. Any size works: the bleed is marked 3.175 mm in from each edge.</div>
     <label class="chk" style="margin-top:8px"><input id="previewBleedChk" type="checkbox"> Show print bleed</label>
   </div>
   <div class="design">
@@ -230,6 +232,7 @@ import { makeSheet, mmLabel, ratioMismatch } from './print-sheet.js';
 import { SCALE_RANGE, moveItem, scaleItem, alignItem, centreItem, resetTent, parseLayout, serializeLayout } from './tent-layout.js';
 import { composeTent, composeFile, composePlaceholder } from './tent-artwork.js';
 import { createFlatView } from './flat-view.js';
+import { isPdfFile, renderPdfFirstPage } from './pdf-preview.js';
 import { entryLayout } from './tent-history.js';
 import { createHistoryController, newId } from './history-controller.js';
 import { loadJsPDF } from './pdf-export.js';
@@ -636,26 +639,39 @@ function setMode(next) {
 btnDesign.onclick = () => setMode('design');
 btnPreview.onclick = () => setMode('preview');
 
-function usePreviewFile(file) {
-  if (!file || !file.type.startsWith('image/')) {
-    previewInfo.classList.add('warn');
-    previewInfo.textContent = 'That is not an image file. Use a PNG or JPEG export of the whole sheet.';
-    return;
+const PT_PER_MM = 72 / 25.4;
+// A preview source: an <img> for PNG/JPEG, or a canvas with page 1 of a PDF.
+async function loadPreviewSource(file) {
+  if (isPdfFile(file)) {
+    previewInfo.classList.remove('warn');
+    previewInfo.textContent = 'Rendering PDF…';
+    const { canvas: page, pageW, pageH } = await renderPdfFirstPage(file, sheet.w);
+    return { source: page, w: page.width, h: page.height,
+      detail: `PDF page 1 · ${mmLabel(pageW / PT_PER_MM, pageH / PT_PER_MM)}` };
   }
-  const url = URL.createObjectURL(file);
-  loadImg(url).then(im => {
-    previewImg = im; previewName = file.name;
+  if (!file.type.startsWith('image/')) throw new Error('That is not a PDF or image file. Use an export of the whole sheet.');
+  const im = await loadImg(URL.createObjectURL(file));
+  return { source: im, w: im.width, h: im.height, detail: `${im.width} × ${im.height} px` };
+}
+let previewTicket = 0;
+function usePreviewFile(file) {
+  if (!file) return;
+  const ticket = ++previewTicket;
+  loadPreviewSource(file).then(({ source, w, h, detail }) => {
+    if (ticket !== previewTicket) return; // a newer file was dropped meanwhile
+    previewImg = source; previewName = file.name;
     previewBtn.classList.add('on');
-    const off = ratioMismatch(sheet, im.width, im.height);
+    const off = ratioMismatch(sheet, w, h);
     const stretched = off > PREVIEW_RATIO_WARN;
     previewInfo.classList.toggle('warn', stretched);
-    previewInfo.textContent = `${file.name} · ${im.width} × ${im.height} px`
+    previewInfo.textContent = `${file.name} · ${detail}`
       + (stretched ? ` · ratio is ${(off * 100).toFixed(1)}% off the ${mmLabel(sheet.wMm, sheet.hMm)} sheet, so it is stretched to fit` : ' · matches the sheet ratio');
     refreshSafely();
   }).catch(err => {
-    console.error(err);
+    console.error('Preview file failed', err);
+    if (ticket !== previewTicket) return;
     previewInfo.classList.add('warn');
-    previewInfo.textContent = 'That file could not be read as an image.';
+    previewInfo.textContent = 'Could not preview that file: ' + (err && err.message ? err.message : err);
   });
 }
 previewBtn.onclick = () => previewFile.click();
