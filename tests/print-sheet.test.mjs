@@ -63,3 +63,13 @@ test('mmLabel trims trailing zeros', () => {
   assert.equal(mmLabel(303.35, 216.35), '303.35 × 216.35 mm');
   assert.equal(mmLabel(297, 210), '297 × 210 mm');
 });
+
+test('ratioMismatch is 0 for the sheet ratio and grows with distortion', async () => {
+  const { ratioMismatch } = await import('../print-sheet.js');
+  const s = makeSheet();
+  assert.equal(ratioMismatch(s, 3584, 2556), 0);
+  assert.ok(Math.abs(ratioMismatch(s, 7168, 5112)) < 1e-12); // same ratio, other size
+  assert.ok(ratioMismatch(s, 3508, 2480) < 0.01);            // plain A4 is within 1%
+  assert.ok(ratioMismatch(s, 1000, 1000) > 0.25);
+  assert.ok(Number.isNaN(ratioMismatch(s, 0, 100)));
+});

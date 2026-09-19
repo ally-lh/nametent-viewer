@@ -50,6 +50,13 @@ export function fitSheet(sheet, boxW, boxH) {
   return { scale, x: (boxW - w) / 2, y: (boxH - h) / 2, w, h };
 }
 
+/** How far an image's aspect ratio is from the sheet's, as a fraction
+ *  (0 = identical). Used to warn before a preview file is stretched. */
+export function ratioMismatch(sheet, imgW, imgH) {
+  if (!(imgW > 0) || !(imgH > 0)) return NaN;
+  return Math.abs((imgW / imgH) / (sheet.w / sheet.h) - 1);
+}
+
 /** "303.35 × 216.35 mm" style label, trailing zeros trimmed. */
 export const mmLabel = (w, h) => `${trimNum(w)} × ${trimNum(h)} mm`;
 const trimNum = n => String(Math.round(n * 100) / 100);

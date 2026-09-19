@@ -18,6 +18,7 @@ const MAX_DPR = 3;
 export function createFlatView({ canvas, sheet, source, onDragMove, onDragEnd }) {
   const ctx = canvas.getContext('2d');
   let items = {};
+  let guide = true; // red bleed tint + cut line
   let hover = null;
   let drag = null;
   let dpr = 1;
@@ -49,7 +50,8 @@ export function createFlatView({ canvas, sheet, source, onDragMove, onDragEnd })
     ctx.scale(fit.scale, fit.scale);
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(source, 0, 0);
-    drawBleedGuide(px);
+    if (guide) drawBleedGuide(px);
+    drawFold(px);
     drawItems(px);
     ctx.restore();
   }
@@ -62,6 +64,10 @@ export function createFlatView({ canvas, sheet, source, onDragMove, onDragEnd })
     ctx.strokeStyle = GUIDE.cutLine;
     ctx.lineWidth = GUIDE.cutLineW * px;
     ctx.strokeRect(t.x, t.y, t.w, t.h);
+  }
+
+  function drawFold(px) {
+    const t = sheet.trim;
     ctx.setLineDash(GUIDE.foldDash.map(d => d * px));
     ctx.strokeStyle = GUIDE.foldLine;
     ctx.lineWidth = 1.5 * px;
@@ -131,6 +137,8 @@ export function createFlatView({ canvas, sheet, source, onDragMove, onDragEnd })
   return {
     /** Item bounds in sheet px, keyed 'text' / 'char' (null = not drawn). */
     setItems(next) { items = { ...next }; draw(); },
+    /** Show or hide the red bleed guide (the fold line stays). */
+    setGuide(on) { guide = !!on; draw(); },
     draw,
     resize,
     isDragging: () => drag !== null,

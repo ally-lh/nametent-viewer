@@ -1,0 +1,38 @@
+/* Saved tents column (see history-panel.js / history-controller.js). */
+#history{flex:0 0 232px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;padding:16px 14px;
+  background:#ddd7c6;border-left:1.5px solid rgba(20,20,19,0.15);color:#1a1915;font:13px/1.45 system-ui,sans-serif;overflow:hidden}
+#histHead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#histHead strong{font-size:14px}
+#histToggle{flex:0 0 auto;padding:4px 9px;border:1.5px solid rgba(20,20,19,0.3);border-radius:6px;background:#fff;color:#1a1915;
+  font:600 12px/1 system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+#history.collapsed{flex:0 0 auto;padding:12px 8px;justify-content:flex-start}
+#history.collapsed > :not(#histHead){display:none}
+#history.collapsed #histHead strong{display:none}
+#history.collapsed #histToggle{writing-mode:vertical-rl;padding:9px 4px}
+#histSave{width:100%;padding:8px 10px;border:1.5px solid #1a1915;border-radius:8px;background:#1a1915;color:#f5f0dc;
+  font:600 13px system-ui,sans-serif;cursor:pointer}
+#histSave:hover{background:#33301f}
+#histSave[disabled]{opacity:.55;cursor:not-allowed}
+#histNote{color:#6b6455;font-size:12px;margin:0;min-height:1.5em}
+#histNote.err{color:#8a2f20}
+#histNote.ok{color:#2f6b3a}
+#histList{display:flex;flex-direction:column;gap:8px;overflow-y:auto;min-height:0;flex:1 1 auto;padding-right:2px}
+#histEmpty{color:#6b6455;font-size:12px;margin:0;padding:12px;border:1.5px dashed rgba(20,20,19,0.3);border-radius:8px;text-align:center}
+.hist{position:relative;border:1.5px solid rgba(20,20,19,0.2);border-radius:10px;background:#fffdf3;overflow:hidden}
+.hist.on{border-color:#1a1915;box-shadow:0 0 0 1.5px #1a1915}
+.histOpen{display:block;width:100%;padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer;text-align:left}
+.histOpen img{display:block;width:100%;aspect-ratio:3584/2556;object-fit:cover;background:#fff;border-bottom:1px solid rgba(20,20,19,0.12)}
+.histMeta{display:flex;flex-direction:column;gap:1px;padding:7px 9px 8px;padding-right:26px}
+.histMeta strong{font-size:13px;line-height:1.25;word-break:break-word}
+.histMeta span{font-size:12px;color:#3f3a30}
+.histMeta small{font-size:11px;color:#6b6455}
+.histDel{position:absolute;top:6px;right:6px;width:22px;height:22px;border:1.5px solid rgba(20,20,19,0.25);border-radius:6px;
+  background:rgba(255,255,255,0.92);color:#1a1915;font:700 14px/1 system-ui,sans-serif;cursor:pointer;padding:0}
+.histDel:hover{background:#fbe9e7;border-color:#8a2f20;color:#8a2f20}
+@media (max-width:900px){
+  #history{flex:0 0 auto;max-height:45vh;border-left:0;border-top:1.5px solid rgba(20,20,19,0.15)}
+  #history.collapsed{padding:8px 16px}
+  #history.collapsed #histHead strong{display:inline}
+  #history.collapsed #histToggle{writing-mode:horizontal-tb;padding:4px 9px}
+  #histList{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+}

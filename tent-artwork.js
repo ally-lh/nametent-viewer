@@ -120,6 +120,36 @@ export function drawCharacter(ctx, sheet, item, img) {
   return { x, y, w, h };
 }
 
+const PLACEHOLDER_PAPER = '#f5f0dc', PLACEHOLDER_INK = '#8a8272';
+const NO_ITEMS = Object.freeze({ text: null, char: null });
+
+/** Preview mode: an uploaded image of the whole sheet, stretched to the
+ *  sheet so the bleed guide sits 3.175 mm in from its edges whatever its
+ *  pixel size. Nothing is draggable. */
+export function composeFile({ ctx, sheet, image }) {
+  ctx.clearRect(0, 0, sheet.w, sheet.h);
+  ctx.drawImage(image, 0, 0, sheet.w, sheet.h);
+  return NO_ITEMS;
+}
+
+/** Blank sheet with a hint on both faces (the back face is upside down). */
+export function composePlaceholder({ ctx, sheet, message }) {
+  ctx.clearRect(0, 0, sheet.w, sheet.h);
+  ctx.fillStyle = PLACEHOLDER_PAPER;
+  ctx.fillRect(0, 0, sheet.w, sheet.h);
+  ctx.save();
+  ctx.fillStyle = PLACEHOLDER_INK;
+  ctx.font = `${Math.round(sheet.h * 0.045)}px system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(message, sheet.w / 2, sheet.h * 0.75);
+  ctx.translate(sheet.w / 2, sheet.h * 0.25);
+  ctx.rotate(Math.PI);
+  ctx.fillText(message, 0, 0);
+  ctx.restore();
+  return NO_ITEMS;
+}
+
 /** Full composition. Returns { text, char } bounds (sheet px, or null when absent). */
 export function composeTent({ ctx, sheet, tent, background, name, charImg, layout, fauxBold }) {
   const L = layout[tent];

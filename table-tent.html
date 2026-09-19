@@ -38,6 +38,7 @@
 <meta name="ext-resource-dependency" content="uploads/IMG 5626 Background Remover.png" data-resource-id="ch8" />
 <meta name="ext-resource-dependency" content="uploads/IMG 5630 Background Remover.png" data-resource-id="ch9" />
 <meta name="ext-resource-dependency" content="uploads/IMG 5631 Background Remover.png" data-resource-id="ch10" />
+<link rel="stylesheet" href="./history-panel.css">
 <style>
 html,body{margin:0;height:100%;background:#f0eee6}
 #app{display:flex;height:100vh;width:100vw;overflow:hidden}
@@ -103,6 +104,11 @@ three-d-stage:not(:defined){visibility:hidden}
 #resetLayout{margin-top:8px;width:100%;padding:7px 10px;border:1.5px solid rgba(20,20,19,0.3);border-radius:8px;
   background:#fff;color:#1a1915;font:600 12px system-ui,sans-serif;cursor:pointer}
 #layoutHint{font:12px/1.4 system-ui,sans-serif;color:#6b6455;margin-top:4px}
+#previewBtn{margin-top:5px;width:100%;padding:8px 0;border:1.5px dashed rgba(20,20,19,0.4);border-radius:8px;
+  background:#fff;color:#1a1915;font:600 12px system-ui,sans-serif;cursor:pointer}
+#previewBtn.on{border-style:solid;border-color:#1a1915;background:#fdf6e0}
+#previewInfo{font:12px/1.4 system-ui,sans-serif;color:#6b6455;margin-top:6px;word-break:break-word}
+#previewInfo.warn{color:#8a5a12}
 .dl{display:flex;flex-direction:column;gap:6px}
 .dl button{padding:8px 10px;border:1.5px solid #1a1915;border-radius:8px;background:#1a1915;color:#f5f0dc;
   font:600 13px/1.3 system-ui,sans-serif;cursor:pointer;width:100%;text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:1px}
@@ -138,6 +144,14 @@ three-d-stage:not(:defined){visibility:hidden}
     <p id="flatNote"><b>Red</b> = bleed, trimmed off after printing. The top half prints upside down (it is the back of the tent).
       Drag the name or the character to move it.</p>
   </aside>
+  <aside id="history">
+    <div id="histHead"><strong>Saved tents</strong>
+      <button id="histToggle" type="button" aria-controls="histList" aria-expanded="true">Hide</button></div>
+    <button id="histSave" type="button">Save current tent</button>
+    <p id="histNote">Every PDF you download is kept here too. Click a tent to bring it back and edit it.</p>
+    <div id="histList" aria-label="Saved tents"></div>
+    <p id="histEmpty">Nothing saved yet.</p>
+  </aside>
 </div>
 <div id="loader" role="status" aria-live="polite">
   <div class="spin"></div>
@@ -147,30 +161,43 @@ three-d-stage:not(:defined){visibility:hidden}
 <div id="panel">
   <button id="collapseBtn" title="Collapse">−</button>
   <div>
+    <div id="modeToggle" class="seg">
+      <button id="btnDesign">Design</button>
+      <button id="btnPreview">Preview a file</button>
+    </div>
+  </div>
+  <div id="secPreview" style="display:none">
+    <label>Sheet image</label>
+    <button id="previewBtn">Drop / choose an image…</button>
+    <input id="previewFile" type="file" accept="image/*" hidden>
+    <div id="previewInfo">Use an export of the whole sheet, bleed included. Any pixel size works: the bleed is marked 3.175 mm in from each edge.</div>
+    <label class="chk" style="margin-top:8px"><input id="previewBleedChk" type="checkbox"> Show print bleed</label>
+  </div>
+  <div class="design">
     <label>Tent style</label>
     <div id="tentToggle" class="seg" style="margin-top:5px">
       <button id="btnTentA">A — Grunge</button>
       <button id="btnTentB">B — Passport</button>
     </div>
   </div>
-  <div id="secA">
+  <div id="secA" class="design">
     <label>Character</label>
     <div id="bgToggle" class="seg" style="margin-top:5px">
       <button id="btnF">Girl</button>
       <button id="btnM">Guy</button>
     </div>
   </div>
-  <div id="secB" style="display:none">
+  <div id="secB" class="design" style="display:none">
     <label>Character</label>
     <div id="charGrid"></div>
     <button id="customBtn">Drop / upload custom PNG…</button>
     <input id="customFile" type="file" accept="image/png,image/webp" hidden>
   </div>
-  <div>
+  <div class="design">
     <label for="nameInput">Name</label>
     <input id="nameInput" type="text" placeholder="Type a name…" maxlength="40" autocomplete="off" style="margin-top:5px">
   </div>
-  <div>
+  <div class="design">
     <label>Layout</label>
     <div id="alignToggle" class="seg" style="margin-top:6px">
       <button id="btnAlignLeft" title="Start the name at the left of its box">Left</button>
@@ -180,10 +207,14 @@ three-d-stage:not(:defined){visibility:hidden}
       <input id="textScale" type="range"></div>
     <div class="rng" id="charScaleRow"><span><label for="charScale">Character size</label><output id="charScaleOut">100%</output></span>
       <input id="charScale" type="range"></div>
+    <div class="seg" style="margin-top:8px">
+      <button id="centreText" title="Centre the name on the A4 page (not the bleed)">Centre name</button>
+      <button id="centreChar" title="Centre the character on the A4 page (not the bleed)">Centre character</button>
+    </div>
     <button id="resetLayout">Reset positions &amp; sizes</button>
     <div id="layoutHint">Drag the name / character in the flat sheet on the right.</div>
   </div>
-  <label class="chk"><input id="bleedChk" type="checkbox"> Show bleed on the 3D tent</label>
+  <label class="chk design"><input id="bleedChk" type="checkbox"> Show bleed on the 3D tent</label>
   <div>
     <label>Download PDF</label>
     <div class="dl" style="margin-top:5px">
@@ -195,10 +226,13 @@ three-d-stage:not(:defined){visibility:hidden}
 </div>
 <script src="./three-d-stage.js"></script>
 <script type="module">
-import { makeSheet, mmLabel } from './print-sheet.js';
-import { SCALE_RANGE, moveItem, scaleItem, alignItem, resetTent, parseLayout, serializeLayout } from './tent-layout.js';
-import { composeTent } from './tent-artwork.js';
+import { makeSheet, mmLabel, ratioMismatch } from './print-sheet.js';
+import { SCALE_RANGE, moveItem, scaleItem, alignItem, centreItem, resetTent, parseLayout, serializeLayout } from './tent-layout.js';
+import { composeTent, composeFile, composePlaceholder } from './tent-artwork.js';
 import { createFlatView } from './flat-view.js';
+import { entryLayout } from './tent-history.js';
+import { createHistoryController, newId } from './history-controller.js';
+import { loadJsPDF } from './pdf-export.js';
 
 // Loading overlay — visible until the first frame is ready; becomes an
 // error panel if any step of the setup throws (instead of a blank page).
@@ -249,7 +283,9 @@ const TRIM = sheet.trim;
 const BLEED_TINT = 'rgba(220, 40, 40, 0.32)';
 const BLEED_LINE = 'rgba(220, 40, 40, 0.9)';
 const LS = { tent: 'tabletent-tent', bg: 'tabletent-bg', name: 'tabletent-name', char: 'tabletent-char',
-  bleed: 'tabletent-bleed', layout: 'tabletent-layout', panel: 'tabletent-panel', flat: 'tabletent-flat' };
+  bleed: 'tabletent-bleed', layout: 'tabletent-layout', panel: 'tabletent-panel', flat: 'tabletent-flat',
+  mode: 'tabletent-mode', previewBleed: 'tabletent-preview-bleed', history: 'tabletent-history', histOpen: 'tabletent-history-open' };
+const PREVIEW_RATIO_WARN = 0.01; // warn when a preview file's aspect is >1% off the sheet's
 
 const $ = id => document.getElementById(id);
 $('flatSize').textContent = `${mmLabel(sheet.wMm, sheet.hMm)} · A4 + ${sheet.bleedMm} mm bleed`;
@@ -306,9 +342,17 @@ let name = localStorage.getItem(LS.name) ?? 'Lorraine';
 const validCharSel = v => Number.isInteger(v) && v >= -1 && v < CHAR_URLS.length ? v : 0;
 let charSel = validCharSel(parseInt(localStorage.getItem(LS.char), 10));
 let customImg = null; // charSel === -1 → custom upload
+let customBlob = null, customImageId = null; // the upload itself + the id it is saved under in the history
 let layout = parseLayout(localStorage.getItem(LS.layout));
 let items = { text: null, char: null }; // where the movable pieces landed (sheet px)
-let showBleed = false;
+let showBleed = false;                    // design mode: red bleed on the 3D tent
+// Preview mode: any image of the whole sheet, shown as-is with the bleed
+// guide 3.175 mm in from its edges. previewBleed drives both views there.
+let mode = localStorage.getItem(LS.mode) === 'preview' ? 'preview' : 'design';
+let previewImg = null, previewName = '';
+let previewBleed = localStorage.getItem(LS.previewBleed) !== '0';
+const bleedOn3D = () => mode === 'preview' ? previewBleed : showBleed;
+const guideOnFlat = () => mode === 'design' || previewBleed;
 
 function persist(key, value) {
   try { localStorage.setItem(key, value); }
@@ -325,6 +369,15 @@ const flat = createFlatView({
   onDragMove: (key, dx, dy) => { layout = moveItem(layout, tent, key, dx, dy); scheduleRefresh(); },
   onDragEnd: () => saveLayout(),
 });
+// Saved tents column on the far right: every download and the save button
+// snapshot the design; click a card to bring it back, × to remove it.
+const saved = createHistoryController({
+  els: { aside: $('history'), toggle: $('histToggle'), save: $('histSave'), note: $('histNote'), list: $('histList'), empty: $('histEmpty') },
+  keys: { history: LS.history, open: LS.histOpen },
+  persist, sheet: canvas, loadImg,
+  readDesign: () => ({ mode, tent, bgKey, charSel, name, layout, customImageId, customBlob }),
+  applyEntry: (entry, custom) => applyEntry(entry, custom),
+});
 
 // The 3D tent samples a separate "view" canvas: the clean composition
 // plus, when enabled, the red bleed guide.
@@ -335,7 +388,7 @@ const vctx = viewCanvas.getContext('2d');
 function paintView() {
   vctx.clearRect(0, 0, sheet.w, sheet.h);
   vctx.drawImage(canvas, 0, 0);
-  if (!showBleed) return;
+  if (!bleedOn3D()) return;
   vctx.fillStyle = BLEED_TINT;
   vctx.fillRect(0, 0, sheet.w, TRIM.y);                                    // top
   vctx.fillRect(0, TRIM.y + TRIM.h, sheet.w, sheet.h - TRIM.y - TRIM.h);   // bottom
@@ -365,7 +418,7 @@ printBack.map = texBack;
 // cut tent looks like). Bleed on: the whole sheet, so the tinted margins are
 // visible around the cut line. Texture v=0 is the bottom row of the image.
 function applyTextureWindow() {
-  const win = showBleed ? { x: 0, y: 0, w: sheet.w, h: sheet.h } : TRIM;
+  const win = bleedOn3D() ? { x: 0, y: 0, w: sheet.w, h: sheet.h } : TRIM;
   const u0 = win.x / sheet.w, uw = win.w / sheet.w;
   const vBottom = (sheet.h - win.y - win.h) / sheet.h, vh = win.h / 2 / sheet.h;
   texFront.repeat.set(uw, vh); texFront.offset.set(u0, vBottom);              // lower half
@@ -383,14 +436,22 @@ async function currentCharImg() {
 let refreshTicket = 0;
 async function refresh() {
   const ticket = ++refreshTicket;
-  const charImg = await currentCharImg();
-  if (ticket !== refreshTicket) return; // superseded while the image loaded
-  const background = tent === 'A' ? backgrounds.A[bgKey] : backgrounds.B;
-  items = composeTent({ ctx, sheet, tent, background, name, charImg, layout, fauxBold: !boldOK });
+  if (mode === 'preview') {
+    items = previewImg
+      ? composeFile({ ctx, sheet, image: previewImg })
+      : composePlaceholder({ ctx, sheet, message: 'Drop an image of the whole sheet here' });
+  } else {
+    const charImg = await currentCharImg();
+    if (ticket !== refreshTicket) return; // superseded while the image loaded
+    const background = tent === 'A' ? backgrounds.A[bgKey] : backgrounds.B;
+    items = composeTent({ ctx, sheet, tent, background, name, charImg, layout, fauxBold: !boldOK });
+  }
   paintView();
   texFront.needsUpdate = true;
   texBack.needsUpdate = true;
+  flat.setGuide(guideOnFlat());
   flat.setItems(items);
+  saved.markCurrent();
 }
 // After boot a failed redraw (e.g. a character PNG that will not load) is
 // reported in the panel instead of through the fatal loading overlay.
@@ -475,6 +536,8 @@ const nameInput = $('nameInput');
 const charGrid = $('charGrid'), customBtn = $('customBtn'), customFile = $('customFile');
 const textScale = $('textScale'), charScale = $('charScale');
 const btnAlignLeft = $('btnAlignLeft'), btnAlignCenter = $('btnAlignCenter');
+const btnDesign = $('btnDesign'), btnPreview = $('btnPreview');
+const previewBtn = $('previewBtn'), previewFile = $('previewFile'), previewInfo = $('previewInfo'), previewBleedChk = $('previewBleedChk');
 
 CHAR_URLS.forEach((url, i) => {
   const b = document.createElement('button');
@@ -494,11 +557,21 @@ function syncScaleSlider(input, key) {
   $(input.id + 'Out').textContent = input.value + '%';
 }
 function syncUI() {
+  const design = mode === 'design';
+  btnDesign.classList.toggle('on', design);
+  btnPreview.classList.toggle('on', !design);
+  document.querySelectorAll('#panel .design').forEach(el => { el.style.display = design ? '' : 'none'; });
+  $('secPreview').style.display = design ? 'none' : '';
+  saved.setDesignMode(design);
+  $('flatNote').innerHTML = design
+    ? '<b>Red</b> = bleed, trimmed off after printing. The top half prints upside down (it is the back of the tent). Drag the name or the character to move it.'
+    : '<b>Red</b> = bleed, 3.175 mm in from each edge of your file. The top half prints upside down (it is the back of the tent).';
   btnTentA.classList.toggle('on', tent === 'A');
   btnTentB.classList.toggle('on', tent === 'B');
-  $('secA').style.display = tent === 'A' ? '' : 'none';
-  $('secB').style.display = tent === 'B' ? '' : 'none';
+  $('secA').style.display = design && tent === 'A' ? '' : 'none';
+  $('secB').style.display = design && tent === 'B' ? '' : 'none';
   $('charScaleRow').style.display = tent === 'B' ? '' : 'none';
+  $('centreChar').style.display = tent === 'B' ? '' : 'none';
   btnF.classList.toggle('on', bgKey === 'F');
   btnM.classList.toggle('on', bgKey === 'M');
   [...charGrid.children].forEach((b, i) => b.classList.toggle('on', tent === 'B' && charSel === i));
@@ -533,17 +606,73 @@ function setAlign(align) {
 }
 btnAlignLeft.onclick = () => setAlign('left');
 btnAlignCenter.onclick = () => setAlign('center');
+// Centre on the A4 page (the non-bleed area), not on the bleed sheet.
+function centreOnPage(key) {
+  const drawn = items[key];
+  layout = centreItem(layout, tent, key, drawn ? drawn.h : undefined);
+  saveLayout(); scheduleRefresh();
+}
+$('centreText').onclick = () => centreOnPage('text');
+$('centreChar').onclick = () => centreOnPage('char');
 $('resetLayout').onclick = () => { layout = resetTent(layout, tent); saveLayout(); syncUI(); refreshSafely(); };
+
+// Re-sample the bleed guide in both views (the download is never tinted).
+function updateBleedViews() {
+  applyTextureWindow();
+  paintView();
+  texFront.needsUpdate = true;
+  texBack.needsUpdate = true;
+  flat.setGuide(guideOnFlat());
+}
+
+// Mode: design a tent, or preview any image of the whole sheet.
+function setMode(next) {
+  mode = next;
+  persist(LS.mode, next);
+  syncUI();
+  updateBleedViews();
+  refreshSafely();
+}
+btnDesign.onclick = () => setMode('design');
+btnPreview.onclick = () => setMode('preview');
+
+function usePreviewFile(file) {
+  if (!file || !file.type.startsWith('image/')) {
+    previewInfo.classList.add('warn');
+    previewInfo.textContent = 'That is not an image file. Use a PNG or JPEG export of the whole sheet.';
+    return;
+  }
+  const url = URL.createObjectURL(file);
+  loadImg(url).then(im => {
+    previewImg = im; previewName = file.name;
+    previewBtn.classList.add('on');
+    const off = ratioMismatch(sheet, im.width, im.height);
+    const stretched = off > PREVIEW_RATIO_WARN;
+    previewInfo.classList.toggle('warn', stretched);
+    previewInfo.textContent = `${file.name} · ${im.width} × ${im.height} px`
+      + (stretched ? ` · ratio is ${(off * 100).toFixed(1)}% off the ${mmLabel(sheet.wMm, sheet.hMm)} sheet, so it is stretched to fit` : ' · matches the sheet ratio');
+    refreshSafely();
+  }).catch(err => {
+    console.error(err);
+    previewInfo.classList.add('warn');
+    previewInfo.textContent = 'That file could not be read as an image.';
+  });
+}
+previewBtn.onclick = () => previewFile.click();
+previewFile.onchange = () => usePreviewFile(previewFile.files[0]);
+previewBleedChk.checked = previewBleed;
+previewBleedChk.addEventListener('change', () => {
+  previewBleed = previewBleedChk.checked;
+  persist(LS.previewBleed, previewBleed ? '1' : '0');
+  updateBleedViews();
+});
 
 // Bleed guide toggle — affects the 3D preview only; the download stays clean.
 const bleedChk = $('bleedChk');
 function setBleed(on) {
   showBleed = on;
   bleedChk.checked = on;
-  applyTextureWindow();
-  paintView();
-  texFront.needsUpdate = true;
-  texBack.needsUpdate = true;
+  updateBleedViews();
 }
 bleedChk.addEventListener('change', () => {
   setBleed(bleedChk.checked);
@@ -555,7 +684,7 @@ function useCustomFile(file) {
   if (!file || !file.type.startsWith('image/')) return;
   const url = URL.createObjectURL(file);
   loadImg(url).then(im => {
-    customImg = im; charSel = -1;
+    customImg = im; customBlob = file; customImageId = newId(); charSel = -1;
     persist(LS.char, '-1');
     syncUI(); refreshSafely();
   }).catch(err => {
@@ -568,7 +697,12 @@ customBtn.onclick = () => customFile.click();
 customFile.onchange = () => useCustomFile(customFile.files[0]);
 // drag & drop anywhere on the page
 addEventListener('dragover', e => e.preventDefault());
-addEventListener('drop', e => { e.preventDefault(); if (tent === 'B') useCustomFile(e.dataTransfer.files[0]); });
+addEventListener('drop', e => {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (mode === 'preview') usePreviewFile(file);
+  else if (tent === 'B') useCustomFile(file);
+});
 
 // if reload landed on custom with no image, fall back to preset 0
 if (charSel === -1 && !customImg) charSel = 0;
@@ -614,28 +748,25 @@ collapseBtn.onclick = () => {
   persist(LS.panel, closed ? 'closed' : 'open');
 };
 
-// PDF export. jsPDF is fetched on first use so it never delays page load;
-// the pinned build is integrity-checked like the three.js import map.
-const JSPDF_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js';
-const JSPDF_SRI = 'sha384-ytX5osgYad9GPnagB0k+CxKTir/bsE7AfpzvCnQ7owfeWuDd+2l2y0PSIqRK+z/2';
-const PDF_JPEG_QUALITY = 0.95;
-let jsPDFLoading = null;
-function loadJsPDF() {
-  if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
-  if (!jsPDFLoading) {
-    jsPDFLoading = new Promise((resolve, reject) => {
-      const s = document.createElement('script');
-      s.src = JSPDF_URL; s.integrity = JSPDF_SRI; s.crossOrigin = 'anonymous';
-      s.onload = () => (window.jspdf && window.jspdf.jsPDF)
-        ? resolve(window.jspdf.jsPDF)
-        : reject(new Error('PDF library did not initialise'));
-      s.onerror = () => { jsPDFLoading = null; reject(new Error('could not download the PDF library — check your connection')); };
-      document.head.appendChild(s);
-    });
+// Put a saved tent back on screen. `custom` is the restored upload for a
+// custom character (null otherwise). Runs in design mode.
+async function applyEntry(entry, custom) {
+  if (mode !== 'design') setMode('design');
+  tent = entry.tent; persist(LS.tent, tent);
+  if (tent === 'A') { bgKey = entry.bgKey; persist(LS.bg, bgKey); }
+  if (tent === 'B') {
+    if (custom) { customImg = custom.img; customBlob = custom.blob; customImageId = custom.id; }
+    charSel = custom ? -1 : entry.charSel;
+    persist(LS.char, String(charSel));
   }
-  return jsPDFLoading;
+  name = entry.name; nameInput.value = name; persist(LS.name, name);
+  layout = entryLayout(layout, entry); saveLayout();
+  syncUI();
+  await refresh();
 }
 
+// PDF export (jsPDF is fetched on first use, see pdf-export.js).
+const PDF_JPEG_QUALITY = 0.95;
 // The sheet to print: the full composition (with bleed) or the A4 trim crop.
 function sheetFor(withBleed) {
   if (withBleed) return { source: canvas, wMm: sheet.wMm, hMm: sheet.hMm, tag: 'bleed-303x216mm' };
@@ -645,10 +776,11 @@ function sheetFor(withBleed) {
   return { source: c, wMm: sheet.trimWMm, hMm: sheet.trimHMm, tag: 'a4-297x210mm' };
 }
 
+const slug = s => (s.trim() || 'blank').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
 function fileBase() {
+  if (mode === 'preview') return `table-tent-preview-${slug(previewName.replace(/\.[^.]+$/, ''))}`;
   const who = tent === 'A' ? (bgKey === 'F' ? 'girl' : 'guy') : (charSel === -1 ? 'custom' : 'char' + (charSel + 1));
-  const safe = (name.trim() || 'blank').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
-  return `table-tent-${tent.toLowerCase()}-${who}-${safe}`;
+  return `table-tent-${tent.toLowerCase()}-${who}-${slug(name)}`;
 }
 
 const dlBleedBtn = $('dlBleedBtn'), dlTrimBtn = $('dlTrimBtn'), dlNote = $('dlNote');
@@ -664,6 +796,8 @@ async function downloadPdf(withBleed) {
     doc.addImage(jpeg, 'JPEG', 0, 0, wMm, hMm, undefined, 'FAST');
     doc.save(`${fileBase()}-${tag}.pdf`);
     dlNote.textContent = `Saved ${mmLabel(wMm, hMm)}, ${withBleed ? 'with bleed' : 'A4, no bleed'} · 300 dpi`;
+    const kept = await saved.save(withBleed ? 'bleed' : 'trim');
+    if (kept) dlNote.textContent += ' · kept in Saved tents';
   } catch (err) {
     console.error('PDF export failed', err);
     dlNote.classList.add('err');

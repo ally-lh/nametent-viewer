@@ -102,3 +102,33 @@ test('alignItem only accepts known alignments on text items', async () => {
   assert.ok(!('align' in JSON.parse(serializeLayout(l)).B.char));
   assert.equal(parseLayout('{"A":{"text":{"x":1,"y":2,"align":"weird"}}}').A.text.align, 'center');
 });
+
+test('tentToStored / withStoredTent move one tent in and out of storage form', async () => {
+  const { alignItem, tentToStored, withStoredTent } = await import('../tent-layout.js');
+  const l = alignItem(scaleItem(moveItem(DEFAULT_LAYOUT, 'B', 'char', -30, 12), 'B', 'text', 1.25), 'B', 'text', 'left');
+  const stored = tentToStored(l, 'B');
+  assert.deepEqual(stored, { text: { x: 1971, y: 1864, scale: 1.25, align: 'left' }, char: { x: 684, y: 2572, scale: 1 } });
+  assert.ok(Object.isFrozen(stored) && Object.isFrozen(stored.text));
+  const other = moveItem(DEFAULT_LAYOUT, 'A', 'text', 5, 5);
+  const merged = withStoredTent(other, 'B', stored);
+  assert.deepEqual(merged.B, l.B);
+  assert.equal(merged.A, other.A);
+  assert.ok(Object.isFrozen(merged) && Object.isFrozen(merged.B.char));
+  const junk = withStoredTent(other, 'B', { text: 'bad', char: { x: 'no' } });
+  assert.deepEqual(junk.B, DEFAULT_LAYOUT.B);
+  assert.equal(withStoredTent(other, 'Q', stored), other);
+  assert.equal(tentToStored(l, 'Q'), null);
+});
+
+test('centreItem centres on the A4 front face, ignoring the bleed', async () => {
+  const { centreItem, FRONT_CENTRE } = await import('../tent-layout.js');
+  assert.deepEqual(FRONT_CENTRE, { x: 1754, y: 1860 });
+  const t = centreItem(DEFAULT_LAYOUT, 'A', 'text');
+  assert.deepEqual([t.A.text.x, t.A.text.y], [1754, 1860]);
+  assert.equal(t.A.text.w, DEFAULT_LAYOUT.A.text.w); // only the position changes
+  const c = centreItem(DEFAULT_LAYOUT, 'B', 'char', 1000);
+  assert.deepEqual([c.B.char.x, c.B.char.y], [1754, 1860 + 500]); // bottom anchor sits half the height below centre
+  assert.equal(centreItem(DEFAULT_LAYOUT, 'B', 'char').B.char.y, 1860 + DEFAULT_LAYOUT.B.char.maxH / 2);
+  assert.equal(centreItem(DEFAULT_LAYOUT, 'A', 'char'), DEFAULT_LAYOUT);
+  assert.equal(DEFAULT_LAYOUT.A.text.x, 2272);
+});

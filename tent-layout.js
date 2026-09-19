@@ -65,21 +65,55 @@ export function alignItem(layout, tent, key, align) {
   return updateItem(layout, tent, key, { align });
 }
 
+/** Centre of the front face in A4 px: the page's middle column, halfway
+ *  down the lower half (the upper half is the back of the tent). */
+export const FRONT_CENTRE = Object.freeze({ x: A4_PX.w / 2, y: A4_PX.h * 0.75 });
+
+/** Put an item dead centre on the A4 trim's front face — ignoring the
+ *  bleed. Text is anchored at its centre; the character at its bottom
+ *  centre, so its drawn height (default: the fit box) is needed. */
+export function centreItem(layout, tent, key, drawnH) {
+  const it = layout[tent] && layout[tent][key];
+  if (!it) return layout;
+  const h = isNum(drawnH) ? drawnH : effectiveItem(it).maxH;
+  const y = key === 'char' ? FRONT_CENTRE.y + h / 2 : FRONT_CENTRE.y;
+  return updateItem(layout, tent, key, { x: FRONT_CENTRE.x, y });
+}
+
 export function resetTent(layout, tent) {
   return DEFAULT_LAYOUT[tent] ? { ...layout, [tent]: DEFAULT_LAYOUT[tent] } : layout;
+}
+
+/** One tent's user-adjustable fields (x, y, scale, align) as a plain,
+ *  frozen object — the form stored in localStorage and in the history. */
+export function tentToStored(layout, tent) {
+  if (!DEFAULT_LAYOUT[tent] || !layout[tent]) return null;
+  const out = {};
+  for (const key of Object.keys(DEFAULT_LAYOUT[tent])) {
+    const { x, y, scale, align } = layout[tent][key];
+    out[key] = align === undefined ? { x, y, scale } : { x, y, scale, align };
+  }
+  return deepFreeze(out);
+}
+
+/** A new layout with one tent replaced by a stored form of it. Missing or
+ *  malformed items fall back to that item's default; the other tent is shared. */
+export function withStoredTent(layout, tent, stored) {
+  if (!DEFAULT_LAYOUT[tent]) return layout;
+  const items = {};
+  for (const key of Object.keys(DEFAULT_LAYOUT[tent])) {
+    const def = DEFAULT_LAYOUT[tent][key];
+    const got = stored && typeof stored === 'object' ? stored[key] : null;
+    items[key] = validStoredItem(got) ? applyStored(def, got) : def;
+  }
+  return deepFreeze({ ...layout, [tent]: items });
 }
 
 /** Only the user-adjustable fields are stored, so improved defaults for
  *  box sizes still apply after an update. */
 export function serializeLayout(layout) {
   const out = {};
-  for (const tent of Object.keys(DEFAULT_LAYOUT)) {
-    out[tent] = {};
-    for (const key of Object.keys(DEFAULT_LAYOUT[tent])) {
-      const { x, y, scale, align } = layout[tent][key];
-      out[tent][key] = align === undefined ? { x, y, scale } : { x, y, scale, align };
-    }
-  }
+  for (const tent of Object.keys(DEFAULT_LAYOUT)) out[tent] = tentToStored(layout, tent);
   return JSON.stringify(out);
 }
 
@@ -88,16 +122,9 @@ export function serializeLayout(layout) {
 export function parseLayout(json) {
   let data = null;
   try { data = json ? JSON.parse(json) : null; } catch (e) { data = null; }
-  const out = {};
-  for (const tent of Object.keys(DEFAULT_LAYOUT)) {
-    out[tent] = {};
-    for (const key of Object.keys(DEFAULT_LAYOUT[tent])) {
-      const def = DEFAULT_LAYOUT[tent][key];
-      const got = data && data[tent] && data[tent][key];
-      out[tent][key] = validStoredItem(got) ? applyStored(def, got) : def;
-    }
-  }
-  return deepFreeze(out);
+  let out = {};
+  for (const tent of Object.keys(DEFAULT_LAYOUT)) out = withStoredTent(out, tent, data && data[tent]);
+  return out;
 }
 
 function validStoredItem(got) {
