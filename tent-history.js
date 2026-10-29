@@ -16,6 +16,12 @@ const CUSTOM_CHAR = -1;
 const MAX_NAME = 40;
 const TENT_LABEL = Object.freeze({ A: 'Grunge', B: 'Passport' });
 const BG_LABEL = Object.freeze({ F: 'Girl', M: 'Guy' });
+// The sign-up form's letter for each preset character, indexed like the
+// preset files (the stored index stays stable; only the label is lettered).
+export const CHAR_LABELS = Object.freeze(['H', 'I', 'A', 'B', 'C', 'J', 'K', 'D', 'E', 'F', 'G']);
+/** Preset indices sorted A–K, for laying out the picker. */
+export const charDisplayOrder = () =>
+  CHAR_LABELS.map((label, i) => ({ label, i })).sort((a, b) => a.label.localeCompare(b.label)).map(c => c.i);
 
 const deepFreeze = o => { Object.values(o).forEach(v => { if (v && typeof v === 'object') deepFreeze(v); }); return Object.freeze(o); };
 const isStr = v => typeof v === 'string';
@@ -105,6 +111,6 @@ export function describeEntry(entry) {
   const title = entry.name.split('\\n').map(s => s.trim()).filter(Boolean).join(' / ') || '(no name)';
   const who = entry.tent === 'A'
     ? BG_LABEL[entry.bgKey]
-    : entry.charSel === CUSTOM_CHAR ? 'Custom image' : 'Character ' + (entry.charSel + 1);
+    : entry.charSel === CUSTOM_CHAR ? 'Custom image' : 'Character ' + (CHAR_LABELS[entry.charSel] ?? entry.charSel + 1);
   return { title, subtitle: `${TENT_LABEL[entry.tent]} · ${who}` };
 }

@@ -87,6 +87,8 @@ three-d-stage:not(:defined){visibility:hidden}
 #charGrid button{aspect-ratio:1;padding:3px;border:1.5px solid rgba(20,20,19,0.25);border-radius:8px;
   background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden}
 #charGrid button.on{border-color:#1a1915;box-shadow:0 0 0 1.5px #1a1915;background:#fdf6e0}
+#charGrid button{position:relative}
+#charGrid .charTag{position:absolute;top:3px;left:5px;font:700 11px system-ui,sans-serif;color:#1a1915;pointer-events:none}
 #charGrid img{max-width:100%;max-height:100%;object-fit:contain;image-rendering:auto;pointer-events:none}
 #customBtn{margin-top:6px;width:100%;padding:8px 0;border:1.5px dashed rgba(20,20,19,0.4);border-radius:8px;
   background:#fff;color:#1a1915;font:600 12px system-ui,sans-serif;cursor:pointer}
@@ -233,7 +235,7 @@ import { SCALE_RANGE, moveItem, scaleItem, alignItem, centreItem, resetTent, par
 import { composeTent, composeFile, composePlaceholder } from './tent-artwork.js';
 import { createFlatView } from './flat-view.js';
 import { isPdfFile, renderPdfFirstPage } from './pdf-preview.js';
-import { entryLayout } from './tent-history.js';
+import { entryLayout, CHAR_LABELS, charDisplayOrder } from './tent-history.js';
 import { createHistoryController, newId } from './history-controller.js';
 import { loadJsPDF } from './pdf-export.js';
 
@@ -542,12 +544,15 @@ const btnAlignLeft = $('btnAlignLeft'), btnAlignCenter = $('btnAlignCenter');
 const btnDesign = $('btnDesign'), btnPreview = $('btnPreview');
 const previewBtn = $('previewBtn'), previewFile = $('previewFile'), previewInfo = $('previewInfo'), previewBleedChk = $('previewBleedChk');
 
-CHAR_URLS.forEach((url, i) => {
+charDisplayOrder().forEach(i => {
   const b = document.createElement('button');
-  b.title = 'Preset ' + (i + 1);
+  b.dataset.char = i;
+  b.title = 'Character ' + CHAR_LABELS[i];
   const im = document.createElement('img');
-  im.src = url; im.loading = 'lazy';
-  b.appendChild(im);
+  im.src = CHAR_URLS[i]; im.loading = 'lazy';
+  const tag = document.createElement('span');
+  tag.className = 'charTag'; tag.textContent = CHAR_LABELS[i];
+  b.append(im, tag);
   b.onclick = () => { charSel = i; persist(LS.char, i); syncUI(); refreshSafely(); };
   charGrid.appendChild(b);
 });
@@ -577,7 +582,7 @@ function syncUI() {
   $('centreChar').style.display = tent === 'B' ? '' : 'none';
   btnF.classList.toggle('on', bgKey === 'F');
   btnM.classList.toggle('on', bgKey === 'M');
-  [...charGrid.children].forEach((b, i) => b.classList.toggle('on', tent === 'B' && charSel === i));
+  [...charGrid.children].forEach(b => b.classList.toggle('on', tent === 'B' && charSel === Number(b.dataset.char)));
   customBtn.classList.toggle('on', charSel === -1);
   syncScaleSlider(textScale, 'text');
   syncScaleSlider(charScale, 'char');

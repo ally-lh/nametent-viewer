@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { DEFAULT_LAYOUT, moveItem, scaleItem, alignItem } from '../tent-layout.js';
 import {
   HISTORY_MAX, SAVE_SOURCES, makeEntry, configKey, addEntry, removeEntry,
-  parseHistory, serializeHistory, describeEntry, entryLayout,
+  parseHistory, serializeHistory, describeEntry, entryLayout, CHAR_LABELS, charDisplayOrder,
 } from '../tent-history.js';
 
 const NOW = 1_760_000_000_000;
@@ -124,6 +124,17 @@ test('entryLayout restores the saved tent into the current layout and leaves the
 test('describeEntry gives a readable title and subtitle', () => {
   assert.deepEqual(describeEntry(mk({ tent: 'A', bgKey: 'F', name: 'Lorraine' })), { title: 'Lorraine', subtitle: 'Grunge · Girl' });
   assert.deepEqual(describeEntry(mk({ tent: 'A', bgKey: 'M', name: '' })), { title: '(no name)', subtitle: 'Grunge · Guy' });
-  assert.deepEqual(describeEntry(mk({ charSel: 3, name: 'Kim\\nLee' })), { title: 'Kim / Lee', subtitle: 'Passport · Character 4' });
+  assert.deepEqual(describeEntry(mk({ charSel: 3, name: 'Kim\\nLee' })), { title: 'Kim / Lee', subtitle: 'Passport · Character B' });
+  assert.deepEqual(describeEntry(mk({ charSel: 0, name: 'Ann' })).subtitle, 'Passport · Character H');
   assert.deepEqual(describeEntry(mk({ charSel: -1, customImageId: 'i', name: 'Sam' })), { title: 'Sam', subtitle: 'Passport · Custom image' });
+});
+
+test('CHAR_LABELS letters each preset A–K as on the sign-up form', () => {
+  assert.deepEqual(CHAR_LABELS, ['H', 'I', 'A', 'B', 'C', 'J', 'K', 'D', 'E', 'F', 'G']);
+  assert.ok(Object.isFrozen(CHAR_LABELS));
+});
+
+test('charDisplayOrder lists preset indices in A–K order', () => {
+  assert.deepEqual(charDisplayOrder(), [2, 3, 4, 7, 8, 9, 10, 0, 1, 5, 6]);
+  assert.deepEqual(charDisplayOrder().map(i => CHAR_LABELS[i]).join(''), 'ABCDEFGHIJK');
 });
